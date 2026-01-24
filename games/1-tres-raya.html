@@ -1,1 +1,34 @@
-
+<style>
+  .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 5px; margin: 20px auto; width: 310px; }
+  .cell { width: 100px; height: 100px; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 2em; cursor: pointer; }
+</style>
+<div id="status">Turno de X</div>
+<div class="board" id="board"></div>
+<script>
+  let cells = Array(9).fill(null);
+  let xTurn = true;
+  const board = document.getElementById('board');
+  function checkWinner() {
+    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for (let [a,b,c] of lines) if(cells[a] && cells[a]===cells[b] && cells[a]===cells[c]) return cells[a];
+    return cells.includes(null) ? null : 'Empate';
+  }
+  function draw() {
+    board.innerHTML = '';
+    cells.forEach((c, i) => {
+      let div = document.createElement('div');
+      div.className = 'cell';
+      div.innerText = c || '';
+      div.onclick = () => {
+        if(c || checkWinner()) return;
+        cells[i] = xTurn ? 'X' : 'O';
+        xTurn = !xTurn;
+        draw();
+        let win = checkWinner();
+        if(win) alert(win === 'Empate' ? '¡Tablas, pisha!' : '¡Ganó ' + win + '!');
+      };
+      board.appendChild(div);
+    });
+  }
+  draw();
+</script>

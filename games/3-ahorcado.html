@@ -1,0 +1,18 @@
+<body style="text-align:center">
+  <h2>¡El Ahorcado!</h2>
+  <div id="palabra" style="font-size:2em; letter-spacing:10px"></div><br>
+  <input id="letra" maxlength="1"> <button onclick="probar()">Probar</button>
+  <p id="msg"></p>
+  <script>
+    let p = "ARSA", adiv = ["_","_","_","_"], fallos = 0;
+    document.getElementById("palabra").innerText = adiv.join(" ");
+    function probar() {
+      let l = document.getElementById("letra").value.toUpperCase();
+      if(p.includes(l)) { p.split("").forEach((x,i)=>{if(x==l) adiv[i]=l;}); }
+      else fallos++;
+      document.getElementById("palabra").innerText = adiv.join(" ");
+      if(!adiv.includes("_")) alert("¡Ole tú!");
+      if(fallos>=5) alert("¡Perdiste, mi arma!");
+    }
+  </script>
+</body>

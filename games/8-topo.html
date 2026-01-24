@@ -1,0 +1,14 @@
+<style>.topo{width:80px;height:80px;background:brown;border-radius:50%;display:none;cursor:pointer;position:absolute;}</style>
+<h2 id="score">Topos: 0</h2>
+<div id="t" class="topo" onclick="pum()"></div>
+<script>
+    let pts = 0;
+    function mover() {
+        let t = document.getElementById('t');
+        t.style.display = 'block';
+        t.style.top = Math.random()*80+'%';
+        t.style.left = Math.random()*80+'%';
+    }
+    function pum() { pts++; document.getElementById('score').innerText = "Topos: "+pts; mover(); }
+    setInterval(mover, 1000);
+</script>

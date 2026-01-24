@@ -1,0 +1,15 @@
+<div style="text-align:center">
+  <h2>¡Dale ahí con coraje!</h2>
+  <h1 id="score">0</h1>
+  <button onclick="clickear()" style="padding:20px; font-size:2em">¡ZAS!</button>
+  <p>Tiempo: <span id="time">10</span>s</p>
+</div>
+<script>
+  let pts = 0, time = 10, active = true;
+  function clickear() { if(active) { pts++; document.getElementById('score').innerText = pts; } }
+  let timer = setInterval(() => {
+    time--;
+    document.getElementById('time').innerText = time;
+    if(time <= 0) { clearInterval(timer); active = false; alert('¡Has dao '+pts+' porrazos!'); }
+  }, 1000);
+</script>

@@ -1,34 +1,108 @@
-<style>
-  .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 5px; margin: 20px auto; width: 310px; }
-  .cell { width: 100px; height: 100px; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 2em; cursor: pointer; }
-</style>
-<div id="status">Turno de X</div>
-<div class="board" id="board"></div>
-<script>
-  let cells = Array(9).fill(null);
-  let xTurn = true;
-  const board = document.getElementById('board');
-  function checkWinner() {
-    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-    for (let [a,b,c] of lines) if(cells[a] && cells[a]===cells[b] && cells[a]===cells[c]) return cells[a];
-    return cells.includes(null) ? null : 'Empate';
-  }
-  function draw() {
-    board.innerHTML = '';
-    cells.forEach((c, i) => {
-      let div = document.createElement('div');
-      div.className = 'cell';
-      div.innerText = c || '';
-      div.onclick = () => {
-        if(c || checkWinner()) return;
-        cells[i] = xTurn ? 'X' : 'O';
-        xTurn = !xTurn;
-        draw();
-        let win = checkWinner();
-        if(win) alert(win === 'Empate' ? '¡Tablas, pisha!' : '¡Ganó ' + win + '!');
-      };
-      board.appendChild(div);
-    });
-  }
-  draw();
-</script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tres en Raya Pro - Mi Arma Edition</title>
+    <style>
+        :root { --primario: #00f2fe; --secundario: #4facfe; --fondo: #1a1a2e; }
+        body { background: var(--fondo); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        h1 { margin-bottom: 10px; text-shadow: 0 0 10px var(--primario); }
+        .controles { margin-bottom: 20px; }
+        select { padding: 10px; border-radius: 5px; border: none; background: var(--secundario); color: white; font-weight: bold; cursor: pointer; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .cell { width: 100px; height: 100px; background: #16213e; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 3em; font-weight: bold; cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.05); }
+        .cell:hover { background: #0f3460; transform: scale(1.05); }
+        .cell.x { color: var(--primario); text-shadow: 0 0 15px var(--primario); }
+        .cell.o { color: #ff007f; text-shadow: 0 0 15px #ff007f; }
+        .btn-reset { margin-top: 30px; padding: 12px 25px; border: none; border-radius: 25px; background: linear-gradient(45deg, var(--primario), var(--secundario)); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-reset:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--primario); }
+    </style>
+</head>
+<body>
+
+    <h1>❌ TRES EN RAYA ⭕</h1>
+    
+    <div class="controles">
+        <select id="modo">
+            <option value="amigo">Contra un colega (Local)</option>
+            <option value="ia">Contra la IA Malaje</option>
+        </select>
+    </div>
+
+    <div class="board" id="board"></div>
+    
+    <button class="btn-reset" onclick="reset()">Reiniciar Partida</button>
+
+    <script>
+        const boardEl = document.getElementById('board');
+        const modoEl = document.getElementById('modo');
+        let tablero = Array(9).fill(null);
+        let turnoX = true;
+        let juegoActivo = true;
+
+        function crearTablero() {
+            boardEl.innerHTML = '';
+            tablero.forEach((valor, i) => {
+                const celda = document.createElement('div');
+                celda.classList.add('cell');
+                if (valor) celda.classList.add(valor.toLowerCase());
+                celda.innerText = valor || '';
+                celda.onclick = () => jugar(i);
+                boardEl.appendChild(celda);
+            });
+        }
+
+        function jugar(i) {
+            if (!tablero[i] && juegoActivo) {
+                tablero[i] = turnoX ? 'X' : 'O';
+                crearTablero();
+                if (chequearGanador()) return;
+                
+                turnoX = !turnoX;
+                
+                if (modoEl.value === 'ia' && !turnoX && juegoActivo) {
+                    setTimeout(jugadaIA, 500);
+                }
+            }
+        }
+
+        function jugadaIA() {
+            let vacias = tablero.map((v, i) => v === null ? i : null).filter(v => v !== null);
+            if (vacias.length > 0) {
+                let eleccion = vacias[Math.floor(Math.random() * vacias.length)];
+                tablero[eleccion] = 'O';
+                crearTablero();
+                chequearGanador();
+                turnoX = true;
+            }
+        }
+
+        function chequearGanador() {
+            const combos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (let combo of combos) {
+                const [a, b, c] = combo;
+                if (tablero[a] && tablero[a] === tablero[b] && tablero[a] === tablero[c]) {
+                    alert('¡Oleee! Ganó ' + tablero[a]);
+                    juegoActivo = false;
+                    return true;
+                }
+            }
+            if (!tablero.includes(null)) {
+                alert('¡Empate! No ni ná...');
+                juegoActivo = false;
+                return true;
+            }
+            return false;
+        }
+
+        function reset() {
+            tablero = Array(9).fill(null);
+            turnoX = true;
+            juegoActivo = true;
+            crearTablero();
+        }
+
+        crearTablero();
+    </script>
+</body>
+</html>

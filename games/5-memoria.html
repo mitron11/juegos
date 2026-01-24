@@ -1,1 +1,12 @@
-
+<body style="text-align:center">
+  <h2>Parejas de Emojis</h2>
+  <div id="tablero" style="display:grid; grid-template-columns: repeat(4, 50px); gap:10px; width:230px; margin:auto"></div>
+  <script>
+    let ems = ["💃","💃","🌞","🌞","🍤","🍤","🥘","🥘"], bar = ems.sort(()=>Math.random()-0.5);
+    bar.forEach(e => {
+      let b = document.createElement("button"); b.innerText = "?";
+      b.onclick = () => { b.innerText = e; };
+      document.getElementById("tablero").appendChild(b);
+    });
+  </script>
+</body>

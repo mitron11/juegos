@@ -1,0 +1,16 @@
+<div style="text-align:center; font-family:sans-serif;">
+    <h2>¿Qué número estoy pensando? (1-100)</h2>
+    <input type="number" id="num">
+    <button onclick="adivinar()">¿Es este?</button>
+    <p id="msg"></p>
+</div>
+<script>
+    let secreto = Math.floor(Math.random()*100)+1;
+    function adivinar() {
+        let n = document.getElementById('num').value;
+        let m = document.getElementById('msg');
+        if(n > secreto) m.innerText = "¡Te has pasao, pisha! Más bajo.";
+        else if(n < secreto) m.innerText = "¡Te quedas corto! Más alto.";
+        else m.innerText = "¡OLEEE! ¡Lo has clavao!";
+    }
+</script>

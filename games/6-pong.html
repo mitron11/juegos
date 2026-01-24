@@ -1,0 +1,13 @@
+<canvas id="p" width="400" height="300" style="background:#000; display:block; margin:auto"></canvas>
+<script>
+  let c=document.getElementById("p").getContext("2d"), x=200, y=150, dx=2, dy=2, py=100;
+  setInterval(() => {
+    c.clearRect(0,0,400,300); c.fillStyle="white";
+    c.fillRect(10, py, 10, 60); x+=dx; y+=dy;
+    if(y<0 || y>300) dy=-dy; if(x>400) dx=-dx;
+    if(x<20 && y>py && y<py+60) dx=-dx;
+    if(x<0) { x=200; alert("¡Casi, pisha!"); }
+    c.beginPath(); c.arc(x,y,5,0,7); c.fill();
+  }, 10);
+  window.onmousemove = (e) => py = e.clientY - 100;
+</script>

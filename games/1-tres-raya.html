@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tres en Raya Neon Pro</title>
+    <title>Tres en Raya Neón - Versión Final</title>
     <style>
-        /* Estilos base para evitar pantalla negra */
         body {
             margin: 0;
-            padding: 0;
-            background-color: #0f0f1c;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d0d1a;
+            color: #00f2ff;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,73 +18,70 @@
         }
 
         h1 {
-            color: #00e5ff;
-            text-shadow: 0 0 10px #00e5ff;
-            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00f2ff;
+            letter-spacing: 5px;
         }
 
         .controls {
-            background: #1a1a2e;
+            background: #16162d;
             padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #00e5ff;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
-            margin-bottom: 20px;
+            border-radius: 15px;
+            border: 2px solid #00f2ff;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            margin-bottom: 25px;
             text-align: center;
         }
 
         select, button {
-            background: #0f0f1c;
-            color: #00e5ff;
-            border: 1px solid #00e5ff;
-            padding: 8px 12px;
+            background: #0d0d1a;
+            color: #00f2ff;
+            border: 1px solid #00f2ff;
+            padding: 10px;
             margin: 5px;
             border-radius: 5px;
             cursor: pointer;
+            font-weight: bold;
         }
 
         button:hover {
-            background: #00e5ff;
-            color: #0f0f1c;
+            background: #00f2ff;
+            color: #0d0d1a;
+            box-shadow: 0 0 15px #00f2ff;
         }
 
         .board {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-gap: 10px;
-            background: #1a1a2e;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+            grid-template-columns: repeat(3, 110px);
+            grid-gap: 15px;
         }
 
         .cell {
-            width: 100px;
-            height: 100px;
-            background: #0f0f1c;
-            border: 2px solid #00e5ff;
+            width: 110px;
+            height: 110px;
+            background: #16162d;
+            border: 2px solid #00f2ff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            font-weight: bold;
+            font-size: 3rem;
             cursor: pointer;
-            border-radius: 8px;
-            transition: 0.3s;
+            border-radius: 10px;
+            transition: all 0.3s;
         }
 
         .cell:hover {
-            box-shadow: 0 0 10px #00e5ff inset;
+            background: rgba(0, 242, 255, 0.1);
+            transform: scale(1.05);
         }
 
-        .cell[data-p="X"] { color: #00e5ff; text-shadow: 0 0 10px #00e5ff; }
-        .cell[data-p="O"] { color: #ff00e5; text-shadow: 0 0 10px #ff00e5; }
+        /* Estilos para las fichas */
+        .cell[data-p="X"] { color: #00f2ff; text-shadow: 0 0 15px #00f2ff; }
+        .cell[data-p="O"] { color: #ff007b; text-shadow: 0 0 15px #ff007b; border-color: #ff007b; }
 
         .status {
-            margin-top: 20px;
-            font-size: 1.5rem;
-            color: #00e5ff;
-            text-shadow: 0 0 5px #00e5ff;
+            margin-top: 25px;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px #00f2ff;
         }
     </style>
 </head>
@@ -95,20 +90,22 @@
     <h1>TRES EN RAYA</h1>
 
     <div class="controls">
-        <label>Modo:</label>
-        <select id="gameMode" onchange="resetGame()">
-            <option value="pvp">Jugador vs Jugador</option>
-            <option value="pvc">Jugador vs IA</option>
-        </select>
-        <br>
-        <label>Dificultad:</label>
-        <select id="difficulty">
-            <option value="1">Fácil</option>
-            <option value="2">Medio</option>
-            <option value="3">Imposible</option>
-        </select>
-        <br>
-        <button onclick="resetGame()">Reiniciar</button>
+        <div>
+            <label>Modo:</label>
+            <select id="gameMode" onchange="resetGame()">
+                <option value="pvp">2 Jugadores (Local)</option>
+                <option value="pvc">Contra IA</option>
+            </select>
+        </div>
+        <div id="divDiff" style="display:none; margin-top:10px;">
+            <label>Dificultad:</label>
+            <select id="difficulty">
+                <option value="1">Fácil</option>
+                <option value="2">Medio</option>
+                <option value="3">Imposible</option>
+            </select>
+        </div>
+        <button onclick="resetGame()" style="margin-top:15px;">Reiniciar Partida</button>
     </div>
 
     <div class="board" id="board">
@@ -123,34 +120,17 @@
         <div class="cell" onclick="handleClick(8)"></div>
     </div>
 
-    <div class="status" id="status">Turno de X</div>
+    <div class="status" id="status">Turno de: X</div>
 
     <script>
         let board = ['', '', '', '', '', '', '', '', ''];
         let currentPlayer = 'X';
-        let active = true;
+        let gameActive = true;
 
-        const statusTxt = document.getElementById('status');
+        const statusDisplay = document.getElementById('status');
         const cells = document.querySelectorAll('.cell');
+        const modeSelect = document.getElementById('gameMode');
+        const divDiff = document.getElementById('divDiff');
 
-        function handleClick(i) {
-            if (board[i] !== '' || !active) return;
-            
-            makeMove(i, currentPlayer);
-
-            if (active && document.getElementById('gameMode').value === 'pvc' && currentPlayer === 'O') {
-                setTimeout(aiTurn, 500);
-            }
-        }
-
-        function makeMove(i, player) {
-            board[i] = player;
-            cells[i].innerText = player;
-            cells[i].setAttribute('data-p', player);
-            
-            if (checkWin(board, player)) {
-                statusTxt.innerText = "Ganador: " + player;
-                active = false;
-                return;
-            }
-            if (!board.includes('
+        modeSelect.addEventListener('change', () => {
+            divDiff.style.display = (modeSelect.value === 'pvc') ? 'block' : 'none

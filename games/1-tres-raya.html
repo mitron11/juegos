@@ -3,13 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tres en Raya Neón - Versión Final</title>
+    <title>Tres en Raya Neón v3</title>
     <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --neon-magenta: #ff007b;
+            --bg-dark: #0a0a12;
+            --panel-bg: #16162d;
+        }
+
         body {
             margin: 0;
-            background-color: #0d0d1a;
-            color: #00f2ff;
-            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -17,120 +24,95 @@
             min-height: 100vh;
         }
 
-        h1 {
-            text-shadow: 0 0 20px #00f2ff;
-            letter-spacing: 5px;
-        }
-
-        .controls {
-            background: #16162d;
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid #00f2ff;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-            margin-bottom: 25px;
+        .container {
+            position: relative;
+            z-index: 10; /* Asegura que esté por encima de cualquier fondo */
             text-align: center;
         }
 
+        h1 {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px var(--neon-cyan);
+            margin: 10px 0;
+        }
+
+        .controls {
+            background: var(--panel-bg);
+            padding: 15px;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
         select, button {
-            background: #0d0d1a;
-            color: #00f2ff;
-            border: 1px solid #00f2ff;
-            padding: 10px;
+            background: #000;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            padding: 8px;
             margin: 5px;
-            border-radius: 5px;
+            font-size: 14px;
             cursor: pointer;
-            font-weight: bold;
+            border-radius: 4px;
         }
 
         button:hover {
-            background: #00f2ff;
-            color: #0d0d1a;
-            box-shadow: 0 0 15px #00f2ff;
+            background: var(--neon-cyan);
+            color: black;
         }
 
         .board {
             display: grid;
-            grid-template-columns: repeat(3, 110px);
-            grid-gap: 15px;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 10px;
+            margin: 0 auto;
         }
 
         .cell {
-            width: 110px;
-            height: 110px;
-            background: #16162d;
-            border: 2px solid #00f2ff;
+            width: 100px;
+            height: 100px;
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-cyan);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
+            font-size: 2.5rem;
+            font-weight: bold;
             cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s;
+            border-radius: 8px;
+            transition: 0.2s;
+            pointer-events: auto; /* Fuerza la recepción de clics */
         }
 
         .cell:hover {
             background: rgba(0, 242, 255, 0.1);
-            transform: scale(1.05);
         }
 
-        /* Estilos para las fichas */
-        .cell[data-p="X"] { color: #00f2ff; text-shadow: 0 0 15px #00f2ff; }
-        .cell[data-p="O"] { color: #ff007b; text-shadow: 0 0 15px #ff007b; border-color: #ff007b; }
+        .cell[data-p="X"] { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        .cell[data-p="O"] { color: var(--neon-magenta); text-shadow: 0 0 10px var(--neon-magenta); border-color: var(--neon-magenta); }
 
         .status {
-            margin-top: 25px;
-            font-size: 1.8rem;
-            text-shadow: 0 0 10px #00f2ff;
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
         }
     </style>
 </head>
 <body>
 
-    <h1>TRES EN RAYA</h1>
+    <div class="container">
+        <h1>TRES EN RAYA</h1>
 
-    <div class="controls">
-        <div>
+        <div class="controls">
             <label>Modo:</label>
-            <select id="gameMode" onchange="resetGame()">
-                <option value="pvp">2 Jugadores (Local)</option>
+            <select id="gameMode">
+                <option value="pvp">2 Jugadores</option>
                 <option value="pvc">Contra IA</option>
             </select>
-        </div>
-        <div id="divDiff" style="display:none; margin-top:10px;">
+            
             <label>Dificultad:</label>
             <select id="difficulty">
                 <option value="1">Fácil</option>
                 <option value="2">Medio</option>
-                <option value="3">Imposible</option>
+                <option value="3" selected>Imposible</option>
             </select>
-        </div>
-        <button onclick="resetGame()" style="margin-top:15px;">Reiniciar Partida</button>
-    </div>
-
-    <div class="board" id="board">
-        <div class="cell" onclick="handleClick(0)"></div>
-        <div class="cell" onclick="handleClick(1)"></div>
-        <div class="cell" onclick="handleClick(2)"></div>
-        <div class="cell" onclick="handleClick(3)"></div>
-        <div class="cell" onclick="handleClick(4)"></div>
-        <div class="cell" onclick="handleClick(5)"></div>
-        <div class="cell" onclick="handleClick(6)"></div>
-        <div class="cell" onclick="handleClick(7)"></div>
-        <div class="cell" onclick="handleClick(8)"></div>
-    </div>
-
-    <div class="status" id="status">Turno de: X</div>
-
-    <script>
-        let board = ['', '', '', '', '', '', '', '', ''];
-        let currentPlayer = 'X';
-        let gameActive = true;
-
-        const statusDisplay = document.getElementById('status');
-        const cells = document.querySelectorAll('.cell');
-        const modeSelect = document.getElementById('gameMode');
-        const divDiff = document.getElementById('divDiff');
-
-        modeSelect.addEventListener('change', () => {
-            divDiff.style.display = (modeSelect.value === 'pvc') ? 'block' : 'none

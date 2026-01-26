@@ -1,29 +1,129 @@
-<canvas id="gc" width="400" height="400" style="background:black"></canvas>
-<script>
-window.onload=function() {
-    canv=document.getElementById("gc"); ctx=canv.getContext("2d");
-    document.addEventListener("keydown",keyPush);
-    setInterval(game,1000/15);
-}
-px=py=10; gs=tc=20; ax=ay=15; xv=yv=0; trail=[]; tail=5;
-function game() {
-    px+=xv; py+=yv;
-    if(px<0) px=tc-1; if(px>tc-1) px=0; if(py<0) py=tc-1; if(py>tc-1) py=0;
-    ctx.fillStyle="black"; ctx.fillRect(0,0,canv.width,canv.height);
-    ctx.fillStyle="lime";
-    for(var i=0;i<trail.length;i++) {
-        ctx.fillRect(trail[i].x*gs,trail[i].y*gs,gs-2,gs-2);
-        if(trail[i].x==px && trail[i].y==py) tail=5;
-    }
-    trail.push({x:px,y:py});
-    while(trail.length>tail) { trail.shift(); }
-    if(ax==px && ay==py) { tail++; ax=Math.floor(Math.random()*tc); ay=Math.floor(Math.random()*tc); }
-    ctx.fillStyle="red"; ctx.fillRect(ax*gs,ay*gs,gs-2,gs-2);
-}
-function keyPush(evt) {
-    switch(evt.keyCode) {
-        case 37: xv=-1;yv=0;break; case 38: xv=0;yv=-1;break;
-        case 39: xv=1;yv=0;break; case 40: xv=0;yv=1;break;
-    }
-}
-</script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Snake Clone - Mi Arma Edition</title>
+    <style>
+        body { background: #4a752c; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Arial', sans-serif; overflow: hidden; }
+        #header { background: #4a752c; width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px; border-radius: 8px 8px 0 0; }
+        .score-container { display: flex; align-items: center; color: white; font-size: 24px; font-weight: bold; }
+        .score-container img { width: 30px; margin-right: 10px; }
+        #game-container { position: relative; border: 10px solid #578a34; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        canvas { background: #aad751; display: block; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); color: white; border-radius: 4px; display: none; }
+        button { padding: 10px 25px; font-size: 18px; border: none; border-radius: 20px; background: #4a752c; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #578a34; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <div class="score-container">🍎 <span id="currentScore">0</span></div>
+        <div class="score-container">🏆 <span id="highScore">0</span></div>
+    </div>
+
+    <div id="game-container">
+        <canvas id="snakeGame" width="400" height="400"></canvas>
+        <div id="overlay" class="overlay">
+            <h1 id="status">¡Casi, pisha!</h1>
+            <button onclick="resetGame()">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('snakeGame');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('currentScore');
+        const highScoreEl = document.getElementById('highScore');
+        const overlay = document.getElementById('overlay');
+
+        const grid = 20;
+        let count = 0;
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHS') || 0;
+        highScoreEl.innerText = highScore;
+
+        let snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
+        let apple = { x: 320, y: 320 };
+
+        function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min)) + min; }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            if (++count < 6) return; // Velocidad estilo Google
+            count = 0;
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            // Dibujar tablero tipo damero
+            for (let i = 0; i < canvas.width / grid; i++) {
+                for (let j = 0; j < canvas.height / grid; j++) {
+                    ctx.fillStyle = (i + j) % 2 === 0 ? '#aad751' : '#a2d149';
+                    ctx.fillRect(i * grid, j * grid, grid, grid);
+                }
+            }
+
+            snake.x += snake.dx;
+            snake.y += snake.dy;
+
+            // Paredes
+            if (snake.x < 0 || snake.x >= canvas.width || snake.y < 0 || snake.y >= canvas.height) endGame();
+
+            snake.cells.unshift({x: snake.x, y: snake.y});
+            if (snake.cells.length > snake.maxCells) snake.cells.pop();
+
+            // Dibujar manzana (roja potente)
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(apple.x + grid/2, apple.y + grid/2, grid/2 - 2, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Dibujar serpiente (azul de Google o verde oscuro)
+            ctx.fillStyle = '#4572e6'; 
+            snake.cells.forEach(function(cell, index) {
+                ctx.beginPath();
+                ctx.roundRect(cell.x, cell.y, grid-1, grid-1, [4]);
+                ctx.fill();
+
+                if (cell.x === apple.x && cell.y === apple.y) {
+                    snake.maxCells++;
+                    score++;
+                    scoreEl.innerText = score;
+                    apple.x = getRandomInt(0, 20) * grid;
+                    apple.y = getRandomInt(0, 20) * grid;
+                }
+
+                for (let i = index + 1; i < snake.cells.length; i++) {
+                    if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) endGame();
+                }
+            });
+        }
+
+        function endGame() {
+            overlay.style.display = 'flex';
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHS', highScore);
+                highScoreEl.innerText = highScore;
+            }
+        }
+
+        function resetGame() {
+            snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
+            score = 0;
+            scoreEl.innerText = 0;
+            apple = { x: getRandomInt(0, 20) * grid, y: getRandomInt(0, 20) * grid };
+            overlay.style.display = 'none';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.which === 37 && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
+            else if (e.which === 38 && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
+            else if (e.which === 39 && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
+            else if (e.which === 40 && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+        });
+
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>

@@ -3,80 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tres en Raya Pro - Dark Edition</title>
+    <title>Tres en Raya Pro</title>
     <style>
-        /* Importamos una fuente más moderna y limpia */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; }
+        .controls { margin: 20px; text-align: center; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; margin-top: 20px; }
+        .cell { width: 100px; height: 100px; background: #fff; border: 2px solid #333; display: flex; 
+                align-items: center; justify-content: center; font-size: 2.5em; cursor: pointer; font-weight: bold; }
+        .cell.taken { cursor: not-allowed; }
+        .status { margin-top: 20px; font-size: 1.2em; font-weight: bold; color: #333; }
+        button { padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        select { padding: 8px; margin: 5px; }
+    </style>
+</head>
+<body>
 
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center;
-            background: #0f172a; /* Azul noche muy oscuro */
-            color: #f8fafc;
-            min-height: 100vh;
-            margin: 0;
+    <h1>Tres en Raya</h1>
+
+    <div class="controls">
+        <label>Modo:</label>
+        <select id="gameMode" onchange="resetGame()">
+            <option value="pvp">Humano vs Humano</option>
+            <option value="pvc">Humano vs IA</option>
+        </select>
+        <br>
+        <label>Dificultad IA:</label>
+        <select id="difficulty">
+            <option value="1">Fácil</option>
+            <option value="2">Medio</option>
+            <option value="3">Imposible</option>
+        </select>
+        <br><br>
+        <button onclick="resetGame()">Reiniciar Juego</button>
+    </div>
+
+    <div class="board" id="board">
+        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="makeMove(1)"></div>
+        <div class="cell" onclick="makeMove(2)"></div>
+        <div class="cell" onclick="makeMove(3)"></div>
+        <div class="cell" onclick="makeMove(4)"></div>
+        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="makeMove(6)"></div>
+        <div class="cell" onclick="makeMove(7)"></div>
+        <div class="cell" onclick="makeMove(8)"></div>
+    </div>
+
+    <div class="status" id="status">Turno de X</div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameActive = true;
+
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+
+        function makeMove(index) {
+            if (board[index] !== '' || !gameActive) return;
+
+            board[index] = currentPlayer;
+            updateBoard();
+
+            if (checkWin(board, currentPlayer)) {
+                statusElement.innerText = `¡El jugador ${currentPlayer} ha ganado!`;
+                gameActive = false;
+                return;
+            }
+
+            if (board.every(cell => cell !== '')) {
+                statusElement.innerText = "¡Empate!";
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            statusElement.innerText = `Turno de ${currentPlayer}`;
+
+            const mode = document.getElementById('gameMode').value;
+            if (mode === 'pvc' && currentPlayer === 'O' && gameActive) {
+                setTimeout(aiMove, 500);
+            }
         }
 
-        h1 { 
-            font-weight: 600; 
-            letter-spacing: 2px; 
-            color: #38bdf8; 
-            margin-bottom: 30px;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        function aiMove() {
+            const diff = document.getElementById('difficulty').value;
+            let move;
+
+            if (diff == "1") {
+                move = getRandomMove();
+            } else if (diff == "2") {
+                move = Math.random() < 0.4 ? getRandomMove() : getBestMove();
+            } else {
+                move = getBestMove();
+            }
+
+            makeMove(move);
         }
 
-        .controls { 
-            margin-bottom: 30px; 
-            text-align: center; 
-            background: #1e293b; 
-            padding: 25px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4); 
-            border: 1px solid #334155;
+        function getRandomMove() {
+            const available = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+            return available[Math.floor(Math.random() * available.length)];
         }
 
-        .controls label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            color: #94a3b8;
+        function getBestMove() {
+            let bestScore = -Infinity;
+            let move;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === '') {
+                    board[i] = 'O';
+                    let score = minimax(board, 0, false);
+                    board[i] = '';
+                    if (score > bestScore) {
+                        bestScore = score;
+                        move = i;
+                    }
+                }
+            }
+            return move;
         }
 
-        .board { 
-            display: grid; 
-            grid-template-columns: repeat(3, 100px); 
-            grid-gap: 15px; 
-            margin-top: 10px; 
+        const scores = { 'O': 10, 'X': -10, 'tie': 0 };
+
+        function minimax(tempBoard, depth, isMaximizing) {
+            let result = checkWinnerForMinimax(tempBoard);
+            if (result !== null) return scores[result];
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (tempBoard[i] === '') {
+                        tempBoard[i] = 'O';
+                        let score = minimax(tempBoard, depth + 1, false);
+                        tempBoard[i] = '';
+                        bestScore = Math.max(score, bestScore);
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (tempBoard[i] === '') {
+                        tempBoard[i] = 'X';
+                        let score = minimax(tempBoard, depth + 1, true);
+                        tempBoard[i] = '';
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+                return bestScore;
+            }
         }
 
-        .cell { 
-            width: 100px; 
-            height: 100px; 
-            background: #1e293b; 
-            border: 2px solid #334155; 
-            border-radius: 12px;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 2.8em; 
-            cursor: pointer; 
-            font-weight: 600; 
-            transition: all 0.3s ease;
-            color: #f8fafc;
+        function checkWin(b, p) {
+            const winConditions = [
+                [0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]
+            ];
+            return winConditions.some(condition => condition.every(i => b[i] === p));
         }
 
-        .cell:hover {
-            background: #334155;
-            transform: translateY(-2px);
-            border-color: #38bdf8;
+        function checkWinnerForMinimax(b) {
+            if (checkWin(b, 'O')) return 'O';
+            if (checkWin(b, 'X')) return 'X';
+            if (b.every(cell => cell !== '')) return 'tie';
+            return null;
         }
 
-        .cell.taken { 
-            cursor: not-allowed; 
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            board.forEach((val, i) => {
+                cells[i].innerText = val;
+                if (val !== '') cells[i].classList.add('taken');
+            });
         }
 
-        /* Colores específicos para X y O */
-        .cell[data-player="X"] { color: #38bdf8; }
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            statusElement.innerText = "Turno de X";
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.innerText = '';
+                cell.classList.remove('taken');
+            });
+        }
+    </script>
+</body>
+</html>

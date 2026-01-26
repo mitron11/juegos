@@ -3,61 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tres en Raya Neon</title>
+    <title>Tres en Raya Neon Pro</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap'); /* Fuente futurista */
-
-        :root {
-            --neon-blue: #00e5ff;
-            --neon-pink: #ff00e5;
-            --dark-bg: #1a1a2e;
-            --darker-bg: #0f0f1c;
-            --text-color: #e0e0e0;
-            --shadow-intensity: 0.5;
-        }
-
+        /* Estilos base para evitar pantalla negra */
         body {
-            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0f0f1c;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
-            background: var(--darker-bg);
-            color: var(--text-color);
-            overflow: hidden; /* Para evitar barras de desplazamiento por sombras */
-            text-shadow: 0 0 5px rgba(0, 229, 255, 0.4); /* Sombra de texto sutil */
         }
 
         h1 {
-            font-size: 3em;
-            color: var(--neon-blue);
-            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue), 0 0 30px rgba(0, 229, 255, 0.6);
-            margin-bottom: 20px;
+            color: #00e5ff;
+            text-shadow: 0 0 10px #00e5ff;
+            margin-bottom: 10px;
         }
 
         .controls {
-            margin: 20px 0;
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #00e5ff;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+            margin-bottom: 20px;
             text-align: center;
-            background: var(--dark-bg);
-            padding: 25px 35px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.3), 0 0 40px rgba(0, 229, 255, 0.15);
-            border: 1px solid var(--neon-blue);
+        }
+
+        select, button {
+            background: #0f0f1c;
+            color: #00e5ff;
+            border: 1px solid #00e5ff;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #00e5ff;
+            color: #0f0f1c;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 10px;
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: #0f0f1c;
+            border: 2px solid #00e5ff;
             display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .controls label {
-            font-size: 1.1em;
-            margin-bottom: 5px;
-            color: var(--neon-blue);
-            text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
-        }
-
-        .controls select, .controls button {
-            padding: 12px 18px;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
             border-radius: 8px;
-            font-size: 1em
+            transition: 0.3s;
+        }
+
+        .cell:hover {
+            box-shadow: 0 0 10px #00e5ff inset;
+        }
+
+        .cell[data-p="X"] { color: #00e5ff; text-shadow: 0 0 10px #00e5ff; }
+        .cell[data-p="O"] { color: #ff00e5; text-shadow: 0 0 10px #ff00e5; }
+
+        .status {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #00e5ff;
+            text-shadow: 0 0 5px #00e5ff;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>TRES EN RAYA</h1>
+
+    <div class="controls">
+        <label>Modo:</label>
+        <select id="gameMode" onchange="resetGame()">
+            <option value="pvp">Jugador vs Jugador</option>
+            <option value="pvc">Jugador vs IA</option>
+        </select>
+        <br>
+        <label>Dificultad:</label>
+        <select id="difficulty">
+            <option value="1">Fácil</option>
+            <option value="2">Medio</option>
+            <option value="3">Imposible</option>
+        </select>
+        <br>
+        <button onclick="resetGame()">Reiniciar</button>
+    </div>
+
+    <div class="board" id="board">
+        <div class="cell" onclick="handleClick(0)"></div>
+        <div class="cell" onclick="handleClick(1)"></div>
+        <div class="cell" onclick="handleClick(2)"></div>
+        <div class="cell" onclick="handleClick(3)"></div>
+        <div class="cell" onclick="handleClick(4)"></div>
+        <div class="cell" onclick="handleClick(5)"></div>
+        <div class="cell" onclick="handleClick(6)"></div>
+        <div class="cell" onclick="handleClick(7)"></div>
+        <div class="cell" onclick="handleClick(8)"></div>
+    </div>
+
+    <div class="status" id="status">Turno de X</div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let active = true;
+
+        const statusTxt = document.getElementById('status');
+        const cells = document.querySelectorAll('.cell');
+
+        function handleClick(i) {
+            if (board[i] !== '' || !active) return;
+            
+            makeMove(i, currentPlayer);
+
+            if (active && document.getElementById('gameMode').value === 'pvc' && currentPlayer === 'O') {
+                setTimeout(aiTurn, 500);
+            }
+        }
+
+        function makeMove(i, player) {
+            board[i] = player;
+            cells[i].innerText = player;
+            cells[i].setAttribute('data-p', player);
+            
+            if (checkWin(board, player)) {
+                statusTxt.innerText = "Ganador: " + player;
+                active = false;
+                return;
+            }
+            if (!board.includes('

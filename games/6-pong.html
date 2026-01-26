@@ -6,7 +6,7 @@
     c.fillRect(10, py, 10, 60); x+=dx; y+=dy;
     if(y<0 || y>300) dy=-dy; if(x>400) dx=-dx;
     if(x<20 && y>py && y<py+60) dx=-dx;
-    if(x<0) { x=200; alert("¡Casi, pisha!"); }
+    if(x<0) { x=200; alert("¡Casi!"); }
     c.beginPath(); c.arc(x,y,5,0,7); c.fill();
   }, 10);
   window.onmousemove = (e) => py = e.clientY - 100;

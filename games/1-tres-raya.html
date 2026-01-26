@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tres en Raya Pro - Mi Arma Edition</title>
+    <title>Tres en Raya </title>
     <style>
         :root { --primario: #00f2fe; --secundario: #4facfe; --fondo: #1a1a2e; }
         body { background: var(--fondo); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
@@ -25,7 +25,7 @@
     <div class="controles">
         <select id="modo">
             <option value="amigo">Contra un colega (Local)</option>
-            <option value="ia">Contra la IA Malaje</option>
+            <option value="ia">Contra la IA (necesita mejora)</option>
         </select>
     </div>
 
@@ -82,13 +82,13 @@
             for (let combo of combos) {
                 const [a, b, c] = combo;
                 if (tablero[a] && tablero[a] === tablero[b] && tablero[a] === tablero[c]) {
-                    alert('¡Oleee! Ganó ' + tablero[a]);
+                    alert('Ganó ' + tablero[a]);
                     juegoActivo = false;
                     return true;
                 }
             }
             if (!tablero.includes(null)) {
-                alert('¡Empate! No ni ná...');
+                alert('¡Empate!');
                 juegoActivo = false;
                 return true;
             }

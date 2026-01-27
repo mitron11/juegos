@@ -1,13 +1,156 @@
-<canvas id="p" width="400" height="300" style="background:#000; display:block; margin:auto"></canvas>
-<script>
-  let c=document.getElementById("p").getContext("2d"), x=200, y=150, dx=2, dy=2, py=100;
-  setInterval(() => {
-    c.clearRect(0,0,400,300); c.fillStyle="white";
-    c.fillRect(10, py, 10, 60); x+=dx; y+=dy;
-    if(y<0 || y>300) dy=-dy; if(x>400) dx=-dx;
-    if(x<20 && y>py && y<py+60) dx=-dx;
-    if(x<0) { x=200; alert("¡Casi!"); }
-    c.beginPath(); c.arc(x,y,5,0,7); c.fill();
-  }, 10);
-  window.onmousemove = (e) => py = e.clientY - 100;
-</script>
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - A Pen by mitron11</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego Pong</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+        }
+        canvas {
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const paddleWidth = 10, paddleHeight = 100, ballRadius = 10;
+        let upArrowPressed = false, downArrowPressed = false;
+
+        const player = {
+            x: 0,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            color: 'white',
+            dy: 5
+        };
+
+        const ai = {
+            x: canvas.width - paddleWidth,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            color: 'white',
+            dy: 5
+        };
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: ballRadius,
+            speed: 5,
+            dx: 5,
+            dy: 5,
+            color: 'white'
+        };
+
+        function drawRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+        }
+
+        function drawCircle(x, y, r, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2, false);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function draw() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the player and ai paddles
+            drawRect(player.x, player.y, player.width, player.height, player.color);
+            drawRect(ai.x, ai.y, ai.width, ai.height, ai.color);
+
+            // Draw the ball
+            drawCircle(ball.x, ball.y, ball.radius, ball.color);
+        }
+
+        function update() {
+            // Move paddles
+            if (upArrowPressed && player.y > 0) {
+                player.y -= player.dy;
+            } else if (downArrowPressed && player.y < canvas.height - player.height) {
+                player.y += player.dy;
+            }
+
+            // Move the ball
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Ball collision with top and bottom walls
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.dy *= -1;
+            }
+
+            // Ball collision with paddles
+            if (ball.x - ball.radius < player.x + player.width &&
+                ball.y + ball.radius > player.y &&
+                ball.y - ball.radius < player.y + player.height) {
+                ball.dx *= -1;
+            }
+
+            if (ball.x + ball.radius > ai.x &&
+                ball.y + ball.radius > ai.y &&
+                ball.y - ball.radius < ai.y + ai.height) {
+                ball.dx *= -1;
+            }
+
+            // AI movement
+            ai.y += ((ball.y - (ai.y + ai.height / 2))) * 0.09;
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowUp') {
+                upArrowPressed = true;
+            } else if (e.key === 'ArrowDown') {
+                downArrowPressed = true;
+            }
+        });
+
+        document.addEventListener('keyup', function (e) {
+            if (e.key === 'ArrowUp') {
+                upArrowPressed = false;
+            } else if (e.key === 'ArrowDown') {
+                downArrowPressed = false;
+            }
+        });
+
+        loop();
+    </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>

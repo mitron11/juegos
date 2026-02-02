@@ -2,122 +2,89 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ahorcado Pro - Versión Estable</title>
+    <title>Ahorcado - Modo 2 Jugadores</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
-        :root {
-            --bg: #0b0e14;
-            --panel: #1a1f28;
-            --accent: #00d2ff;
-            --error: #ff4757;
-            --success: #2ed573;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .game-container {
-            background: var(--panel);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            text-align: center;
-            max-width: 550px;
-            width: 90%;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        #hangman-svg {
-            width: 140px;
-            height: 160px;
-            margin: 10px auto;
-            display: block;
-        }
-
-        .draw-part {
-            fill: none;
-            stroke: var(--accent);
-            stroke-width: 5;
-            stroke-linecap: round;
-            visibility: hidden;
-            transition: visibility 0.2s;
-        }
-
-        .visible { visibility: visible; }
-
-        #word-display {
-            font-size: 2rem;
-            letter-spacing: 6px;
-            margin: 20px 0;
-            font-weight: 600;
-            min-height: 1.5em;
-            text-transform: uppercase;
-        }
-
-        .keyboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(38px, 1fr));
-            gap: 8px;
-            margin: 20px 0;
-        }
-
-        .key {
-            padding: 10px 2px;
-            background: #2d3436;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .key:hover:not(:disabled) { background: var(--accent); color: var(--bg); }
-        .key:disabled { opacity: 0.2; cursor: not-allowed; }
-        .key.correct { background: var(--success) !important; color: white; }
-        .key.wrong { background: var(--error) !important; color: white; }
-
-        .message { font-weight: bold; font-size: 1.1rem; min-height: 1.5em; margin-bottom: 10px; }
-
-        .btn-reset {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, var(--accent), #0076ff);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
+        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
+        .container { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .oculto { display: none; }
+        .palabra-display { font-size: 2em; letter-spacing: 10px; margin: 20px 0; font-family: monospace; }
+        input[type="text"], input[type="password"] { padding: 10px; font-size: 1.1em; width: 60%; }
+        button { padding: 10px 20px; font-size: 1.1em; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; }
+        .vidas { color: #d9534f; font-weight: bold; font-size: 1.2em; }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <h2 style="color: var(--accent); margin: 0;">AHORCADO</h2>
-        
-        <svg id="hangman-svg" viewBox="0 0 100 120">
-            <path d="M10,110 L90,110" stroke="#3d444b" stroke-width="4"/>
-            <path d="M30,110 L30,10 L70,10 L70,25" stroke="#3d444b" stroke-width="4" fill="none"/>
-            <circle cx="70" cy="35" r="10" class="draw-part" id="p0"/>
-            <line x1="70" y1="45" x2="70" y2="80" class="draw-part" id="p1"/>
-            <line x1="70" y1="55" x2="50" y2="70" class="draw-part" id="p2"/>
-            <line x1="70" y1="55" x2="90" y2="70" class="draw-part" id="p3"/>
-            <line x1="70" y1="80" x2="55" y2="105" class="draw-part" id="p4"/>
-            <line x1="70" y1="80" x2="85" y2="105" class="draw-part" id="p5"/>
-        </svg>
+<div class="container">
+    <h1>El Ahorcado (2 Jugadores)</h1>
 
-        <div id="word-display">_ _ _ _ _</div>
-        <div class="keyboard" id="keyboard"></div>
-        <div id="message" class="
+    <div id="setup">
+        <p>Jugador 1: Escribe la palabra secreta</p>
+        <input type="password" id="inputPalabra" placeholder="Escribe aquí...">
+        <button onclick="iniciarJuego()">¡Listo!</button>
+    </div>
+
+    <div id="juego" class="oculto">
+        <div class="palabra-display" id="display"></div>
+        <p>Intentos restantes: <span id="vidas" class="vidas">6</span></p>
+        <p>Letras usadas: <span id="usadas"></span></p>
+        <input type="text" id="inputLetra" maxlength="1" placeholder="Letra...">
+        <button onclick="intentarLetra()">Probar</button>
+        <p id="mensaje"></p>
+        <button onclick="location.reload()" style="background:#6c757d;">Reiniciar</button>
+    </div>
+</div>
+
+<script>
+    let palabraSecreta = "";
+    let letrasAdivinadas = [];
+    let letrasFalladas = [];
+    let vidas = 6;
+
+    function iniciarJuego() {
+        palabraSecreta = document.getElementById('inputPalabra').value.toLowerCase().trim();
+        if (palabraSecreta.length < 2) {
+            alert("¡Pon una palabra de verdad, pisha!");
+            return;
+        }
+        document.getElementById('setup').classList.add('oculto');
+        document.getElementById('juego').classList.remove('oculto');
+        actualizarPantalla();
+    }
+
+    function actualizarPantalla() {
+        const display = palabraSecreta.split('').map(l => (letrasAdivinadas.includes(l) ? l : "_")).join(' ');
+        document.getElementById('display').innerText = display;
+        document.getElementById('vidas').innerText = vidas;
+        document.getElementById('usadas').innerText = letrasFalladas.join(', ');
+
+        if (!display.includes('_')) {
+            document.getElementById('mensaje').innerText = "¡Olé! ¡Habéis ganado!";
+            document.getElementById('inputLetra').disabled = true;
+        } else if (vidas <= 0) {
+            document.getElementById('mensaje').innerText = "¡Tiesos! La palabra era: " + palabraSecreta;
+            document.getElementById('inputLetra').disabled = true;
+        }
+    }
+
+    function intentarLetra() {
+        const input = document.getElementById('inputLetra');
+        const letra = input.value.toLowerCase();
+        input.value = "";
+        input.focus();
+
+        if (!letra.match(/[a-zñ]/i) || letra === "") return;
+        if (letrasAdivinadas.includes(letra) || letrasFalladas.includes(letra)) return;
+
+        if (palabraSecreta.includes(letra)) {
+            letrasAdivinadas.push(letra);
+        } else {
+            letrasFalladas.push(letra);
+            vidas--;
+        }
+        actualizarPantalla();
+    }
+</script>
+
+</body>
+</html>

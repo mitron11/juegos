@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tres en Raya Pro | Colores Premium</title>
+    <title>Tres en Raya Pro | Fix</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
         :root {
             --fondo: #102C26;
             --tarjeta: #F7EFCE;
             --primario: #e91e63;
-            --secundario: #F7EFCE;
-            --texto: #102C26;
-            --negro-suave: #2c2c2c;
+            --texto: #ffffff;
         }
 
         body { 
@@ -26,104 +24,69 @@
             padding: 20px;
         }
 
-        h1 { 
-            font-size: 2.2rem; 
-            color: var(--tarjeta); 
-            text-shadow: 4px 4px 0px var(--primario);
-            margin-bottom: 10px;
-        }
+        h1 { color: var(--tarjeta); text-shadow: 3px 3px 0px var(--primario); }
 
         .controls { 
-            margin: 15px; 
-            text-align: center; 
             background: var(--tarjeta); 
-            padding: 20px; 
-            border-radius: 15px; 
+            padding: 15px; 
+            border-radius: 12px; 
             border: 4px solid var(--primario);
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.3);
-            width: 90%;
-            max-width: 340px;
-            color: var(--negro-suave);
+            width: 90%; max-width: 320px;
+            color: #102C26;
+            margin-bottom: 20px;
         }
 
-        label { display: block; margin-top: 10px; font-size: 0.8rem; color: var(--primario); }
-
         select { 
-            width: 100%;
-            padding: 8px; 
-            margin: 5px 0; 
-            background: var(--fondo); 
-            color: white; 
-            border: 2px solid var(--primario);
-            font-family: 'Bungee', sans-serif;
-            border-radius: 5px;
-            cursor: pointer;
+            width: 100%; padding: 8px; margin: 5px 0; 
+            background: var(--fondo); color: white; 
+            border: 2px solid var(--primario); font-family: 'Bungee';
         }
 
         .board { 
             display: grid; 
             grid-template-columns: repeat(3, 100px); 
-            grid-gap: 12px; 
-            margin-top: 10px; 
-            padding: 20px;
-            background: var(--tarjeta);
+            grid-gap: 10px; 
+            background: var(--tarjeta); 
+            padding: 15px; 
             border-radius: 15px;
-            box-shadow: 10px 10px 0px var(--primario);
+            box-shadow: 8px 8px 0px var(--primario);
         }
 
         .cell { 
             width: 100px; 
             height: 100px; 
             background: #ffffff; 
-            border: 3px solid var(--fondo); 
+            border: 2px solid #ccc; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 3em; 
+            font-size: 3.5rem; /* Tamaño grande para que se vea bien */
             cursor: pointer; 
+            border-radius: 10px;
             transition: 0.2s;
-            border-radius: 12px;
-            color: var(--negro-suave);
         }
 
-        .cell:hover:not(.taken) {
-            background: #f0f0f0;
-            transform: scale(1.05);
-            border-color: var(--primario);
+        /* COLORES CLAVE PARA QUE APAREZCAN */
+        .cell.x-color { 
+            color: var(--primario) !important; 
+            text-shadow: 2px 2px 0px #880e4f;
         }
 
+        .cell.o-color { 
+            color: var(--fondo) !important; 
+            text-shadow: 1px 1px 0px #000;
+        }
+
+        .cell:hover:not(.taken) { background: #eee; }
         .cell.taken { cursor: not-allowed; }
-        .cell.x-color { color: var(--primario); }
-        .cell.o-color { color: #102C26; } /* Color del fondo para la O */
 
-        .status { 
-            margin-top: 25px; 
-            font-size: 1.4em; 
-            color: var(--tarjeta);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
+        .status { margin-top: 20px; font-size: 1.5rem; color: var(--tarjeta); }
 
         button { 
-            margin-top: 15px;
-            padding: 12px 25px; 
-            cursor: pointer; 
-            background: var(--primario); 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            font-family: 'Bungee', cursive;
-            box-shadow: 4px 4px 0px #880e4f;
-            transition: 0.1s;
-        }
-
-        button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
-        
-        .back-btn {
-            margin-top: 20px;
-            color: var(--tarjeta);
-            text-decoration: none;
-            font-size: 0.8rem;
-            border-bottom: 2px solid var(--primario);
+            margin-top: 10px; padding: 10px 20px; 
+            background: var(--primario); color: white; 
+            border: none; border-radius: 8px; font-family: 'Bungee';
+            box-shadow: 4px 4px 0px #5a0a33;
         }
     </style>
 </head>
@@ -132,19 +95,11 @@
     <h1>TRES EN RAYA</h1>
 
     <div class="controls">
-        <label>MODO DE JUEGO</label>
+        <label>MODO</label>
         <select id="gameMode" onchange="resetGame()">
-            <option value="pvp">AMIGOS (LOCAL)</option>
+            <option value="pvp">AMIGOS</option>
             <option value="pvc">CONTRA IA</option>
         </select>
-        
-        <label>DIFICULTAD IA</label>
-        <select id="difficulty">
-            <option value="1">FÁCIL</option>
-            <option value="2">NORMAL</option>
-            <option value="3">IMPOSIBLE</option>
-        </select>
-        <br>
         <button onclick="resetGame()">REINICIAR</button>
     </div>
 
@@ -158,4 +113,71 @@
         <div class="cell" onclick="makeMove(6)"></div>
         <div class="cell" onclick="makeMove(7)"></div>
         <div class="cell" onclick="makeMove(8)"></div>
-  
+    </div>
+
+    <div class="status" id="status">TURNO DE X</div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameActive = true;
+
+        function makeMove(index) {
+            if (board[index] !== '' || !gameActive) return;
+            
+            board[index] = currentPlayer;
+            updateBoard();
+
+            if (checkWin(board, currentPlayer)) {
+                document.getElementById('status').innerText = "¡GANÓ LA " + currentPlayer + "!";
+                gameActive = false;
+                return;
+            }
+            if (board.every(cell => cell !== '')) {
+                document.getElementById('status').innerText = "¡EMPATE!";
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('status').innerText = "TURNO DE " + currentPlayer;
+
+            if (document.getElementById('gameMode').value === 'pvc' && currentPlayer === 'O') {
+                setTimeout(aiMove, 500);
+            }
+        }
+
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            board.forEach((val, i) => {
+                cells[i].innerText = val;
+                cells[i].classList.remove('x-color', 'o-color', 'taken');
+                if (val === 'X') cells[i].classList.add('x-color', 'taken');
+                if (val === 'O') cells[i].classList.add('o-color', 'taken');
+            });
+        }
+
+        function checkWin(b, p) {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return wins.some(c => c.every(i => b[i] === p));
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            document.getElementById('status').innerText = "TURNO DE X";
+            updateBoard();
+        }
+
+        // Lógica simple de IA para probar rápido
+        function aiMove() {
+            let empty = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+            if (empty.length > 0) {
+                let move = empty[Math.floor(Math.random() * empty.length)];
+                makeMove(move);
+            }
+        }
+    </script>
+</body>
+</html>

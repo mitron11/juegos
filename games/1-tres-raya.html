@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tres en Raya Pro | Suite</title>
+    <title>Tres en Raya Pro | Colores Premium</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,6 +12,7 @@
             --primario: #e91e63;
             --secundario: #F7EFCE;
             --texto: #ffffff;
+            --negro-suave: #2c2c2c;
         }
 
         body { 
@@ -26,24 +27,26 @@
         }
 
         h1 { 
-            font-size: 2.5rem; 
-            color: var(--primario); 
-            text-shadow: 4px 4px 0px var(--secundario);
+            font-size: 2.2rem; 
+            color: var(--tarjeta); 
+            text-shadow: 4px 4px 0px var(--primario);
             margin-bottom: 10px;
         }
 
         .controls { 
-            margin: 20px; 
+            margin: 15px; 
             text-align: center; 
             background: var(--tarjeta); 
             padding: 20px; 
             border-radius: 15px; 
-            border: 3px solid var(--primario);
-            box-shadow: 8px 8px 0px var(--primario);
-            max-width: 350px;
+            border: 4px solid var(--primario);
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 340px;
+            color: var(--negro-suave);
         }
 
-        label { display: block; margin-top: 10px; font-size: 0.8rem; color: var(--secundario); }
+        label { display: block; margin-top: 10px; font-size: 0.8rem; color: var(--primario); }
 
         select { 
             width: 100%;
@@ -51,51 +54,53 @@
             margin: 5px 0; 
             background: var(--fondo); 
             color: white; 
-            border: 2px solid var(--secundario);
+            border: 2px solid var(--primario);
             font-family: 'Bungee', sans-serif;
             border-radius: 5px;
+            cursor: pointer;
         }
 
         .board { 
             display: grid; 
             grid-template-columns: repeat(3, 100px); 
-            grid-gap: 15px; 
-            margin-top: 20px; 
-            padding: 15px;
+            grid-gap: 12px; 
+            margin-top: 10px; 
+            padding: 20px;
             background: var(--tarjeta);
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(233, 30, 99, 0.3);
+            border-radius: 15px;
+            box-shadow: 10px 10px 0px var(--primario);
         }
 
         .cell { 
             width: 100px; 
             height: 100px; 
-            background: var(--tarjeta); 
-            border: 3px solid #333; 
+            background: #ffffff; 
+            border: 3px solid var(--fondo); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             font-size: 3em; 
             cursor: pointer; 
             transition: 0.2s;
-            border-radius: 8px;
-            color: var(--primario);
+            border-radius: 12px;
+            color: var(--negro-suave);
         }
 
         .cell:hover:not(.taken) {
-            border-color: var(--secundario);
-            background: #1a1a1a;
+            background: #f0f0f0;
+            transform: scale(1.05);
+            border-color: var(--primario);
         }
 
         .cell.taken { cursor: not-allowed; }
-        .cell.x-color { color: var(--primario); text-shadow: 0 0 10px var(--primario); }
-        .cell.o-color { color: #00d4ff; text-shadow: 0 0 10px #00d4ff; }
+        .cell.x-color { color: var(--primario); }
+        .cell.o-color { color: #102C26; } /* Color del fondo para la O */
 
         .status { 
-            margin-top: 30px; 
-            font-size: 1.5em; 
-            color: var(--secundario);
-            text-shadow: 2px 2px #000;
+            margin-top: 25px; 
+            font-size: 1.4em; 
+            color: var(--tarjeta);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         button { 
@@ -105,7 +110,7 @@
             background: var(--primario); 
             color: white; 
             border: none; 
-            border-radius: 8px; 
+            border-radius: 10px; 
             font-family: 'Bungee', cursive;
             box-shadow: 4px 4px 0px #880e4f;
             transition: 0.1s;
@@ -113,8 +118,13 @@
 
         button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
         
-        .back-link { margin-top: 20px; color: #666; text-decoration: none; font-size: 0.8rem; }
-        .back-link:hover { color: var(--primario); }
+        .back-btn {
+            margin-top: 20px;
+            color: var(--tarjeta);
+            text-decoration: none;
+            font-size: 0.8rem;
+            border-bottom: 2px solid var(--primario);
+        }
     </style>
 </head>
 <body>
@@ -124,5 +134,28 @@
     <div class="controls">
         <label>MODO DE JUEGO</label>
         <select id="gameMode" onchange="resetGame()">
-            <option value="pvp">HUMANO VS HUMANO</option>
-            <option value="pvc">HUMANO VS IA</option>
+            <option value="pvp">AMIGOS (LOCAL)</option>
+            <option value="pvc">CONTRA IA</option>
+        </select>
+        
+        <label>DIFICULTAD IA</label>
+        <select id="difficulty">
+            <option value="1">FÁCIL</option>
+            <option value="2">NORMAL</option>
+            <option value="3">IMPOSIBLE</option>
+        </select>
+        <br>
+        <button onclick="resetGame()">REINICIAR</button>
+    </div>
+
+    <div class="board" id="board">
+        <div class="cell" onclick="makeMove(0)"></div>
+        <div class="cell" onclick="makeMove(1)"></div>
+        <div class="cell" onclick="makeMove(2)"></div>
+        <div class="cell" onclick="makeMove(3)"></div>
+        <div class="cell" onclick="makeMove(4)"></div>
+        <div class="cell" onclick="makeMove(5)"></div>
+        <div class="cell" onclick="makeMove(6)"></div>
+        <div class="cell" onclick="makeMove(7)"></div>
+        <div class="cell" onclick="makeMove(8)"></div>
+  

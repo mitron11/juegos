@@ -4,25 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>¡Mini Juegos!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
     <style>
-        body { background: #121313; font-family: midgame; text-align: center; color: #333; }
-        h1 { color: #e91e63; margin-top: 50px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 30px; max-width: 1000px; margin: auto; }
-        .card { background: #FF6044; border: 2px solid #e91e63; padding: 25px; border-radius: 15px; text-decoration: none; color: #333; font-weight: bold; transition: 0.3s; }
-        .card:hover { background: #FF6044; color: white; transform: scale(1.05); }
+        :root {
+            --fuente-titulo: 'Press Start 2P', cursive;
+            --fuente-botones: 'Bungee', cursive;
+            --color-fondo: #121313;
+            --color-tarjeta: #FF6044;
+            --color-borde: #e91e63;
+        }
+
+        body { 
+            background: var(--color-fondo); 
+            font-family: var(--fuente-botones); 
+            text-align: center; 
+            color: white; 
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { 
+            font-family: var(--fuente-titulo);
+            color: var(--color-borde); 
+            margin-top: 50px; 
+            font-size: 2rem;
+            line-height: 1.5;
+            text-shadow: 4px 4px #000;
+        }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            padding: 30px; 
+            max-width: 1000px; 
+            margin: auto; 
+        }
+
+        .card { 
+            background: var(--color-tarjeta); 
+            border: 4px solid var(--color-borde); 
+            padding: 25px; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            color: #121313; 
+            font-weight: bold; 
+            transition: 0.2s;
+            box-shadow: 8px 8px 0px var(--color-borde);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        .card:hover { 
+            background: var(--color-borde); 
+            color: white; 
+            transform: translate(-4px, -4px); 
+            box-shadow: 12px 12px 0px var(--color-tarjeta);
+        }
+
+        .info {
+            font-size: 0.7rem;
+            margin-top: 10px;
+            background: rgba(0,0,0,0.2);
+            padding: 2px 8px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
+
     <h1>🕹️ MINI JUEGOS 🕹️</h1>
+    
     <div class="grid">
-        <a href="games/1-tres-raya.html" class="card">❌ Tres en Raya </a>
-        <a href="games/2-snake.html" class="card">🐍 La Serpiente </a>
-        <a href="games/3-ahorcado.html" class="card">🪑 El Ahorcado (DOS JUGADORES)</a>
-        <a href="games/4-clicker.html" class="card">🖱️ Machaca-Botón (BETA)</a>
-        <a href="games/5-memoria.html" class="card">🧠 Memoria (NO FUNCIONA)</a>
-        <a href="games/6-pong.html" class="card">🏓 Pong</a>
-        <a href="games/7-adivina.html" class="card">🔮 Adivina el Número </a>
-        <a href="games/8-topo.html" class="card">🔨 Dale al Topo </a>
+        <a href="games/1-tres-raya.html" class="card">
+            <span>❌ TRES EN RAYA</span>
+        </a>
+        <a href="games/2-snake.html" class="card">
+            <span>🐍 LA SERPIENTE</span>
+        </a>
+        <a href="games/3-ahorcado.html" class="card">
+            <span>🪑 EL AHORCADO</span>
+            <span class="info">2 JUGADORES</span>
+        </a>
+        <a href="games/4-clicker.html" class="card">
+            <span>🖱️ MACHACA-BOTÓN</span>
+            <span class="info">BETA</span>
+        </a>
+        <a href="games/5-memoria.html" class="card">
+            <span>🧠 MEMORIA</span>
+            <span class="info">¡ARREGLADO!</span>
+        </a>
+        <a href="games/6-pong.html" class="card">
+            <span>🏓 PONG</span>
+        </a>
+        <a href="games/7-adivina.html" class="card">
+            <span>🔮 ADIVINA EL NÚMERO</span>
+        </a>
+        <a href="games/8-topo.html" class="card">
+            <span>🔨 DALE AL TOPO</span>
+        </a>
     </div>
+
 </body>
 </html>

@@ -2,49 +2,168 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ahorcado - Modo 2 Jugadores</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahorcado Pro | Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
-        .container { background: white; max-width: 500px; margin: auto; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --texto: #ffffff;
+        }
+
+        body { 
+            font-family: 'Bungee', cursive; 
+            text-align: center; 
+            background: var(--fondo); 
+            color: var(--texto); 
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container { 
+            background: var(--tarjeta); 
+            max-width: 500px; 
+            margin: auto; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 10px 10px 0px var(--primario);
+            color: #102C26;
+        }
+
+        h1 { color: var(--primario); font-size: 1.8rem; margin-bottom: 20px; }
+
         .oculto { display: none; }
-        .palabra-display { font-size: 2em; letter-spacing: 10px; margin: 20px 0; font-family: monospace; }
-        input[type="text"], input[type="password"] { padding: 10px; font-size: 1.1em; width: 60%; }
-        button { padding: 10px 20px; font-size: 1.1em; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; }
-        .vidas { color: #d9534f; font-weight: bold; font-size: 1.2em; }
+
+        /* Dibujo del ahorcado */
+        #ahorcado-canvas {
+            background: #fff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 3px solid var(--fondo);
+        }
+
+        .palabra-display { 
+            font-size: 2em; 
+            letter-spacing: 5px; 
+            margin: 20px 0; 
+            color: var(--fondo);
+            border-bottom: 2px solid var(--primario);
+            padding-bottom: 10px;
+        }
+
+        input { 
+            padding: 12px; 
+            font-family: 'Bungee'; 
+            font-size: 1rem; 
+            border: 2px solid var(--fondo); 
+            border-radius: 8px;
+            text-align: center;
+            width: 80%;
+            margin-bottom: 15px;
+        }
+
+        button { 
+            padding: 12px 25px; 
+            font-family: 'Bungee'; 
+            cursor: pointer; 
+            background: var(--primario); 
+            color: white; 
+            border: none; 
+            border-radius: 10px;
+            box-shadow: 4px 4px 0px #880e4f;
+            transition: 0.1s;
+        }
+
+        button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
+
+        .vidas { color: var(--primario); font-size: 1.5rem; }
+        
+        #usadas { color: #d9534f; font-size: 0.9rem; }
+
+        .back-link { 
+            display: inline-block;
+            margin-top: 20px; 
+            color: var(--tarjeta); 
+            text-decoration: none; 
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--primario);
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>El Ahorcado (2 Jugadores)</h1>
+    <h1>EL AHORCADO</h1>
 
     <div id="setup">
-        <p>Jugador 1: Escribe la palabra secreta</p>
-        <input type="password" id="inputPalabra" placeholder="Escribe aquí...">
-        <button onclick="iniciarJuego()">¡Listo!</button>
+        <p>JUGADOR 1: ESCRIBE LA PALABRA SECRETA</p>
+        <input type="password" id="inputPalabra" placeholder="Sshhh...">
+        <br>
+        <button onclick="iniciarJuego()">¡A JUGAR!</button>
     </div>
 
     <div id="juego" class="oculto">
+        <canvas id="ahorcado-canvas" width="200" height="200"></canvas>
         <div class="palabra-display" id="display"></div>
-        <p>Intentos restantes: <span id="vidas" class="vidas">6</span></p>
-        <p>Letras usadas: <span id="usadas"></span></p>
-        <input type="text" id="inputLetra" maxlength="1" placeholder="Letra...">
-        <button onclick="intentarLetra()">Probar</button>
-        <p id="mensaje"></p>
-        <button onclick="location.reload()" style="background:#6c757d;">Reiniciar</button>
+        
+        <p>VIDAS: <span id="vidas" class="vidas">6</span></p>
+        <p>FALLOS: <span id="usadas"></span></p>
+        
+        <div id="input-area">
+            <input type="text" id="inputLetra" maxlength="1" placeholder="LETRA">
+            <br>
+            <button onclick="intentarLetra()">PROBAR</button>
+        </div>
+        
+        <p id="mensaje" style="font-size: 1.2rem; margin-top: 15px;"></p>
+        <button onclick="location.reload()" style="background:#6c757d; font-size: 0.8rem; box-shadow: 3px 3px 0 #444;">REINICIAR</button>
     </div>
 </div>
+
+<a href="../index.html" class="back-link">← VOLVER AL MENÚ</a>
 
 <script>
     let palabraSecreta = "";
     let letrasAdivinadas = [];
     let letrasFalladas = [];
     let vidas = 6;
+    const canvas = document.getElementById('ahorcado-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Configuración inicial del dibujo
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#102C26';
+
+    function dibujarAhorcado(fallos) {
+        ctx.strokeStyle = '#102C26';
+        if (fallos === 1) { // Base y poste
+            ctx.beginPath(); ctx.moveTo(20, 180); ctx.lineTo(180, 180); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(50, 180); ctx.lineTo(50, 20); ctx.lineTo(120, 20); ctx.lineTo(120, 40); ctx.stroke();
+        }
+        if (fallos === 2) { // Cabeza
+            ctx.beginPath(); ctx.arc(120, 60, 20, 0, Math.PI * 2); ctx.stroke();
+        }
+        if (fallos === 3) { // Cuerpo
+            ctx.beginPath(); ctx.moveTo(120, 80); ctx.lineTo(120, 130); ctx.stroke();
+        }
+        if (fallos === 4) { // Brazo izq
+            ctx.beginPath(); ctx.moveTo(120, 90); ctx.lineTo(90, 110); ctx.stroke();
+        }
+        if (fallos === 5) { // Brazo der
+            ctx.beginPath(); ctx.moveTo(120, 90); ctx.lineTo(150, 110); ctx.stroke();
+        }
+        if (fallos === 6) { // Piernas
+            ctx.beginPath(); ctx.moveTo(120, 130); ctx.lineTo(90, 160); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(120, 130); ctx.lineTo(150, 160); ctx.stroke();
+        }
+    }
 
     function iniciarJuego() {
         palabraSecreta = document.getElementById('inputPalabra').value.toLowerCase().trim();
         if (palabraSecreta.length < 2) {
-            alert("¡Pon una palabra de verdad, pisha!");
+            alert("¡Escribe algo más largo!");
             return;
         }
         document.getElementById('setup').classList.add('oculto');
@@ -59,11 +178,13 @@
         document.getElementById('usadas').innerText = letrasFalladas.join(', ');
 
         if (!display.includes('_')) {
-            document.getElementById('mensaje').innerText = "¡Olé! ¡Habéis ganado!";
-            document.getElementById('inputLetra').disabled = true;
+            document.getElementById('mensaje').innerText = "🏆 ¡GANASTE!";
+            document.getElementById('mensaje').style.color = "green";
+            document.getElementById('input-area').classList.add('oculto');
         } else if (vidas <= 0) {
-            document.getElementById('mensaje').innerText = "¡Tiesos! La palabra era: " + palabraSecreta;
-            document.getElementById('inputLetra').disabled = true;
+            document.getElementById('mensaje').innerText = "💀 LA PALABRA ERA: " + palabraSecreta.toUpperCase();
+            document.getElementById('mensaje').style.color = "red";
+            document.getElementById('input-area').classList.add('oculto');
         }
     }
 
@@ -81,9 +202,21 @@
         } else {
             letrasFalladas.push(letra);
             vidas--;
+            dibujarAhorcado(6 - vidas);
         }
         actualizarPantalla();
     }
+
+    // Permitir jugar con la tecla Enter
+    document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            if (!document.getElementById('setup').classList.contains('oculto')) {
+                iniciarJuego();
+            } else {
+                intentarLetra();
+            }
+        }
+    });
 </script>
 
 </body>

@@ -1,15 +1,204 @@
-<div style="text-align:center">
-  <h2>¡Dale ahí!</h2>
-  <h1 id="score">0</h1>
-  <button onclick="clickear()" style="padding:20px; font-size:2em">¡ZAS!</button>
-  <p>Tiempo: <span id="time">10</span>s</p>
-</div>
-<script>
-  let pts = 0, time = 10, active = true;
-  function clickear() { if(active) { pts++; document.getElementById('score').innerText = pts; } }
-  let timer = setInterval(() => {
-    time--;
-    document.getElementById('time').innerText = time;
-    if(time <= 0) { clearInterval(timer); active = false; alert('¡Has dao '+pts+' porrazos!'); }
-  }, 1000);
-</script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machaca-Botón Pro | Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --texto: #ffffff;
+        }
+
+        body { 
+            font-family: 'Bungee', cursive; 
+            background: var(--fondo); 
+            color: var(--texto); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            overflow: hidden;
+        }
+
+        .game-card {
+            background: var(--tarjeta);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 12px 12px 0px var(--primario);
+            text-align: center;
+            color: var(--fondo);
+            width: 300px;
+            position: relative;
+        }
+
+        h2 { margin: 0; font-size: 1.2rem; color: var(--primario); }
+        
+        #score { 
+            font-size: 5rem; 
+            margin: 10px 0; 
+            text-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+        }
+
+        .main-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primario);
+            color: white;
+            font-family: 'Bungee';
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 8px 0px #880e4f;
+            transition: transform 0.05s, box-shadow 0.05s;
+            user-select: none;
+            outline: none;
+        }
+
+        .main-btn:active {
+            transform: translateY(4px) scale(0.95);
+            box-shadow: 0 4px 0px #880e4f;
+        }
+
+        .timer-box {
+            margin-top: 25px;
+            width: 100%;
+            background: #ddd;
+            height: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--primario);
+            transition: width 0.1s linear;
+        }
+
+        .stats {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Efecto de partículas */
+        .particle {
+            position: absolute;
+            color: var(--primario);
+            font-weight: bold;
+            pointer-events: none;
+            animation: fly 0.5s ease-out forwards;
+        }
+
+        @keyframes fly {
+            0% { transform: translateY(0) opacity(1); }
+            100% { transform: translateY(-50px) opacity(0); }
+        }
+
+        .back-link {
+            margin-top: 30px;
+            color: var(--tarjeta);
+            text-decoration: none;
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--primario);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <h2>PUNTUACIÓN</h2>
+        <h1 id="score">0</h1>
+        
+        <button id="click-btn" class="main-btn" onclick="clickear()">¡ZAS!</button>
+
+        <div class="timer-box">
+            <div id="timer-bar"></div>
+        </div>
+        
+        <div class="stats">
+            <span>TIEMPO: <span id="time">10</span>s</span>
+            <span>RÉCORD: <span id="highScore">0</span></span>
+        </div>
+    </div>
+
+    <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
+
+    <script>
+        let pts = 0;
+        let timeLeft = 10;
+        let active = false;
+        let timerInterval;
+        let highScore = localStorage.getItem('clickerHS') || 0;
+
+        document.getElementById('highScore').innerText = highScore;
+
+        function clickear() {
+            // Iniciar juego al primer clic
+            if (!active && timeLeft === 10) {
+                startGame();
+            }
+
+            if (active) {
+                pts++;
+                document.getElementById('score').innerText = pts;
+                createParticle();
+            }
+        }
+
+        function startGame() {
+            active = true;
+            pts = 0;
+            document.getElementById('score').innerText = pts;
+            
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                document.getElementById('time').innerText = Math.max(0, Math.ceil(timeLeft));
+                document.getElementById('timer-bar').style.width = (timeLeft * 10) + "%";
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 100);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            active = false;
+            
+            if (pts > highScore) {
+                highScore = pts;
+                localStorage.setItem('clickerHS', highScore);
+                document.getElementById('highScore').innerText = highScore;
+                alert('¡NUEVO RÉCORD! ' + pts + ' porrazos.');
+            } else {
+                alert('Fin: ' + pts + ' porrazos.');
+            }
+
+            // Reset para el siguiente
+            timeLeft = 10;
+            document.getElementById('timer-bar').style.width = "100%";
+            document.getElementById('time').innerText = "10";
+        }
+
+        function createParticle() {
+            const btn = document.getElementById('click-btn');
+            const p = document.createElement('div');
+            p.innerText = "+1";
+            p.className = 'particle';
+            p.style.left = (Math.random() * 100 + 100) + "px";
+            p.style.top = "150px";
+            document.querySelector('.game-card').appendChild(p);
+            setTimeout(() => p.remove(), 500);
+        }
+    </script>
+</body>
+</html>

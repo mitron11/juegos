@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber-Dash | Suite</title>
+    <title>Cyber Dash | Deluxe</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
         :root {
-            --fondo: #102C26;
+            --fondo: #0a0a0a;
+            --primario: #00f2ff;
+            --secundario: #e91e63;
             --tarjeta: #F7EFCE;
-            --primario: #e91e63;
         }
 
         body {
             margin: 0;
             background: var(--fondo);
-            color: var(--tarjeta);
+            color: white;
             font-family: 'Bungee', cursive;
             display: flex;
             flex-direction: column;
@@ -25,76 +26,148 @@
             overflow: hidden;
         }
 
+        #ui-menu {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .skin-selector {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .skin-option {
+            width: 60px;
+            height: 60px;
+            border: 4px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: 0.2s;
+        }
+
+        .skin-option.selected {
+            border-color: var(--primario);
+            transform: scale(1.2);
+            box-shadow: 0 0 15px var(--primario);
+        }
+
         canvas {
-            border: 4px solid var(--tarjeta);
-            background: #000;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(233, 30, 99, 0.4);
+            border-bottom: 5px solid var(--primario);
+            background: linear-gradient(to bottom, #001214, #000);
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
         }
 
-        .ui {
-            margin-bottom: 10px;
+        .stats {
+            position: absolute;
+            top: 20px;
             font-size: 1.5rem;
-            text-shadow: 2px 2px 0px #000;
+            color: var(--primario);
+            text-shadow: 0 0 10px var(--primario);
         }
 
-        .hint {
-            margin-top: 10px;
-            font-size: 0.8rem;
-            opacity: 0.7;
+        .btn-start {
+            padding: 15px 40px;
+            font-family: 'Bungee';
+            background: var(--primario);
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
         }
 
-        .back-link {
-            margin-top: 15px;
-            color: var(--tarjeta);
-            text-decoration: none;
-            font-size: 0.8rem;
-            border-bottom: 2px solid var(--primario);
-        }
+        .back-link { margin-top: 20px; color: var(--tarjeta); text-decoration: none; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-    <div class="ui">SCORE: <span id="score">0</span></div>
+    <div id="ui-menu">
+        <h1 style="color: var(--primario)">CYBER DASH</h1>
+        <p>ELIGE TU SKIN</p>
+        <div class="skin-selector">
+            <div class="skin-option selected" onclick="setSkin('🟦', this)">🟦</div>
+            <div class="skin-option" onclick="setSkin('🛸', this)">🛸</div>
+            <div class="skin-option" onclick="setSkin('🔺', this)">🔺</div>
+        </div>
+        <button class="btn-start" onclick="startGame()">¡A JIERRO!</button>
+        <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
+    </div>
 
-    <canvas id="dashCanvas" width="600" height="250"></canvas>
-
-    <div class="hint">Presiona ESPACIO o TAP para saltar</div>
-    
-    <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
+    <div class="stats">SCORE: <span id="score">0</span></div>
+    <canvas id="gameCanvas" width="800" height="300"></canvas>
 
     <script>
-        const canvas = document.getElementById('dashCanvas');
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const scoreEl = document.getElementById('score');
-
+        
+        let gameActive = false;
         let score = 0;
-        let gameActive = true;
-        let speed = 6;
+        let speed = 7;
         let frames = 0;
+        let currentSkin = '🟦';
+        let particles = [];
 
         const player = {
-            x: 50,
-            y: 190,
-            w: 30,
-            h: 30,
-            dy: 0,
-            jumpForce: 12,
-            gravity: 0.6,
-            grounded: true
+            x: 80, y: 230, w: 40, h: 40,
+            dy: 0, jumpForce: 13, gravity: 0.8,
+            grounded: true, rotation: 0
         };
 
         const obstacles = [];
 
+        function setSkin(skin, el) {
+            currentSkin = skin;
+            document.querySelectorAll('.skin-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function startGame() {
+            document.getElementById('ui-menu').style.display = 'none';
+            gameActive = true;
+            resetGame();
+            loop();
+        }
+
+        function resetGame() {
+            score = 0;
+            speed = 7;
+            frames = 0;
+            obstacles.length = 0;
+            player.y = 230;
+            player.dy = 0;
+            player.rotation = 0;
+        }
+
         function spawnObstacle() {
-            const h = Math.random() * 40 + 20;
+            const isTall = Math.random() > 0.5;
             obstacles.push({
                 x: canvas.width,
-                y: 220 - h,
-                w: 20,
-                h: h,
-                color: '#e91e63'
+                y: isTall ? 210 : 230,
+                w: 30,
+                h: isTall ? 60 : 40,
+                type: isTall ? 'pillar' : 'spike'
             });
+        }
+
+        function createParticles(x, y) {
+            for(let i=0; i<5; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: -Math.random() * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1
+                });
+            }
         }
 
         function update() {
@@ -102,96 +175,17 @@
 
             frames++;
             score++;
-            scoreEl.innerText = Math.floor(score / 10);
+            document.getElementById('score').innerText = Math.floor(score/10);
 
-            // Gravedad y Salto
+            // Gravedad
             player.dy += player.gravity;
             player.y += player.dy;
 
-            if (player.y > 190) {
-                player.y = 190;
+            if (player.y > 230) {
+                player.y = 230;
                 player.dy = 0;
                 player.grounded = true;
-            }
-
-            // Dificultad progresiva
-            if (frames % 500 === 0) speed += 0.5;
-
-            // Obstáculos
-            if (frames % Math.floor(100 / (speed/5)) === 0) spawnObstacle();
-
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                obstacles[i].x -= speed;
-
-                // Colisión
-                if (
-                    player.x < obstacles[i].x + obstacles[i].w &&
-                    player.x + player.w > obstacles[i].x &&
-                    player.y < obstacles[i].y + obstacles[i].h &&
-                    player.y + player.h > obstacles[i].y
-                ) {
-                    gameOver();
-                }
-
-                if (obstacles[i].x + obstacles[i].w < 0) obstacles.splice(i, 1);
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Suelo de neón
-            ctx.strokeStyle = '#4572e6';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(0, 220);
-            ctx.lineTo(canvas.width, 220);
-            ctx.stroke();
-
-            // Jugador
-            ctx.fillStyle = '#F7EFCE';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#F7EFCE';
-            ctx.fillRect(player.x, player.y, player.w, player.h);
-            
-            // Obstáculos
-            ctx.shadowColor = '#e91e63';
-            for (let obs of obstacles) {
-                ctx.fillStyle = obs.color;
-                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-            }
-            ctx.shadowBlur = 0;
-        }
-
-        function gameOver() {
-            gameActive = false;
-            alert("¡BOOM! Puntuación: " + Math.floor(score/10));
-            document.location.reload();
-        }
-
-        function jump() {
-            if (player.grounded) {
-                player.dy = -player.jumpForce;
+                player.rotation = 0;
+            } else {
                 player.grounded = false;
-            }
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') jump();
-        });
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            jump();
-        });
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-
-        loop();
-    </script>
-</body>
-</html>
+                player.rotation += 0.15; // Rot

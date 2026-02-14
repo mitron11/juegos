@@ -26,16 +26,17 @@
             overflow: hidden;
         }
 
+        /* Menú de inicio mejorado para que no bloquee */
         #ui-menu {
             position: absolute;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10;
+            z-index: 100; /* Aseguramos que esté arriba */
         }
 
         .skin-selector {
@@ -45,27 +46,29 @@
         }
 
         .skin-option {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border: 4px solid white;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 2.5rem;
             transition: 0.2s;
+            background: #222;
         }
 
         .skin-option.selected {
             border-color: var(--primario);
-            transform: scale(1.2);
-            box-shadow: 0 0 15px var(--primario);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--primario);
+            background: #003336;
         }
 
         canvas {
             border-bottom: 5px solid var(--primario);
-            background: linear-gradient(to bottom, #001214, #000);
-            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+            background: #000;
+            display: block;
         }
 
         .stats {
@@ -73,31 +76,35 @@
             top: 20px;
             font-size: 1.5rem;
             color: var(--primario);
-            text-shadow: 0 0 10px var(--primario);
+            z-index: 5;
         }
 
         .btn-start {
-            padding: 15px 40px;
+            padding: 15px 50px;
             font-family: 'Bungee';
             background: var(--primario);
+            color: black;
             border: none;
             cursor: pointer;
             font-size: 1.5rem;
-            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+            margin-top: 20px;
+            transition: 0.2s;
         }
 
-        .back-link { margin-top: 20px; color: var(--tarjeta); text-decoration: none; font-size: 0.8rem; }
+        .btn-start:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+        .back-link { margin-top: 30px; color: var(--tarjeta); text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid var(--primario); }
     </style>
 </head>
 <body>
 
     <div id="ui-menu">
-        <h1 style="color: var(--primario)">CYBER DASH</h1>
-        <p>ELIGE TU SKIN</p>
+        <h1 style="color: var(--primario); font-size: 3rem; margin: 0;">CYBER DASH</h1>
+        <p style="margin-top: 10px;">SELECCIONA TU AVATAR</p>
         <div class="skin-selector">
-            <div class="skin-option selected" onclick="setSkin('🟦', this)">🟦</div>
-            <div class="skin-option" onclick="setSkin('🛸', this)">🛸</div>
-            <div class="skin-option" onclick="setSkin('🔺', this)">🔺</div>
+            <div id="skin1" class="skin-option selected" onclick="setSkin('🟦', 'skin1')">🟦</div>
+            <div id="skin2" class="skin-option" onclick="setSkin('🛸', 'skin2')">🛸</div>
+            <div id="skin3" class="skin-option" onclick="setSkin('🔺', 'skin3')">🔺</div>
         </div>
         <button class="btn-start" onclick="startGame()">¡A JIERRO!</button>
         <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
@@ -116,55 +123,56 @@
         let frames = 0;
         let currentSkin = '🟦';
         let particles = [];
+        let obstacles = [];
 
         const player = {
             x: 80, y: 230, w: 40, h: 40,
-            dy: 0, jumpForce: 13, gravity: 0.8,
+            dy: 0, jumpForce: 14, gravity: 0.8,
             grounded: true, rotation: 0
         };
 
-        const obstacles = [];
-
-        function setSkin(skin, el) {
+        function setSkin(skin, id) {
             currentSkin = skin;
             document.querySelectorAll('.skin-option').forEach(opt => opt.classList.remove('selected'));
-            el.classList.add('selected');
+            document.getElementById(id).classList.add('selected');
         }
 
         function startGame() {
             document.getElementById('ui-menu').style.display = 'none';
+            resetGameState();
             gameActive = true;
-            resetGame();
-            loop();
+            // No llamamos a loop aquí porque ya se está ejecutando
         }
 
-        function resetGame() {
+        function resetGameState() {
             score = 0;
             speed = 7;
             frames = 0;
-            obstacles.length = 0;
+            obstacles = [];
+            particles = [];
             player.y = 230;
             player.dy = 0;
             player.rotation = 0;
+            player.grounded = true;
+            document.getElementById('score').innerText = "0";
         }
 
         function spawnObstacle() {
-            const isTall = Math.random() > 0.5;
+            const isTall = Math.random() > 0.6;
             obstacles.push({
                 x: canvas.width,
-                y: isTall ? 210 : 230,
+                y: isTall ? 200 : 230,
                 w: 30,
-                h: isTall ? 60 : 40,
-                type: isTall ? 'pillar' : 'spike'
+                h: isTall ? 70 : 40
             });
         }
 
         function createParticles(x, y) {
-            for(let i=0; i<5; i++) {
+            for(let i=0; i<3; i++) {
                 particles.push({
                     x: x, y: y,
-                    vx: -Math.random() * 5,
-                    vy: (Math.random() - 0.5) * 5,
+                    vx: -Math.random() * 4 - 2,
+                    vy: (Math.random() - 0.5) * 4,
                     life: 1
                 });
             }
@@ -177,7 +185,7 @@
             score++;
             document.getElementById('score').innerText = Math.floor(score/10);
 
-            // Gravedad
+            // Gravedad y Salto
             player.dy += player.gravity;
             player.y += player.dy;
 
@@ -188,4 +196,128 @@
                 player.rotation = 0;
             } else {
                 player.grounded = false;
-                player.rotation += 0.15; // Rot
+                player.rotation += 0.15;
+            }
+
+            // Aumento de velocidad
+            if (frames % 500 === 0) speed += 0.5;
+
+            // Generar obstáculos
+            if (frames % Math.floor(100 / (speed/7)) === 0) {
+                spawnObstacle();
+            }
+
+            // Partículas de suelo
+            if(player.grounded && frames % 4 === 0) createParticles(player.x, player.y + 35);
+
+            // Lógica obstáculos
+            for(let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].x -= speed;
+
+                // Colisión (Caja de colisión algo más pequeña para que sea justo)
+                if (player.x + 5 < obstacles[i].x + obstacles[i].w &&
+                    player.x + player.w - 5 > obstacles[i].x &&
+                    player.y + 5 < obstacles[i].y + obstacles[i].h &&
+                    player.y + player.h - 5 > obstacles[i].y) {
+                    gameOver();
+                }
+
+                if (obstacles[i].x + obstacles[i].w < 0) obstacles.splice(i, 1);
+            }
+
+            // Lógica partículas
+            for(let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].vx;
+                particles[i].y += particles[i].vy;
+                particles[i].life -= 0.03;
+                if(particles[i].life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Rejilla de fondo (Scroll)
+            ctx.strokeStyle = "rgba(0, 242, 255, 0.1)";
+            ctx.lineWidth = 1;
+            let offset = (frames * speed) % 50;
+            for(let x = 0; x <= canvas.width + 50; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x - offset, 0);
+                ctx.lineTo(x - offset, 270);
+                ctx.stroke();
+            }
+
+            // Suelo
+            ctx.strokeStyle = "#00f2ff";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, 270);
+            ctx.lineTo(canvas.width, 270);
+            ctx.stroke();
+
+            // Partículas
+            particles.forEach(p => {
+                ctx.fillStyle = `rgba(0, 242, 255, ${p.life})`;
+                ctx.fillRect(p.x, p.y, 3, 3);
+            });
+
+            // Jugador
+            ctx.save();
+            ctx.translate(player.x + player.w/2, player.y + player.h/2);
+            ctx.rotate(player.rotation);
+            ctx.font = "34px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(currentSkin, 0, 0);
+            ctx.restore();
+
+            // Obstáculos
+            ctx.fillStyle = "#e91e63";
+            obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                // Brillo neón
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+            });
+        }
+
+        function gameOver() {
+            gameActive = false;
+            document.getElementById('ui-menu').style.display = 'flex';
+            document.querySelector('#ui-menu h1').innerText = "¡CRASH!";
+            document.querySelector('#ui-menu p').innerText = "SCORE: " + Math.floor(score/10);
+        }
+
+        function jump() {
+            if (player.grounded && gameActive) {
+                player.dy = -player.jumpForce;
+                player.grounded = false;
+            }
+        }
+
+        // Controles
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // Arrancamos el loop perpetuo
+        loop();
+    </script>
+</body>
+</html>

@@ -41,13 +41,13 @@
         .range-info {
             font-size: 0.8rem;
             background: rgba(16, 44, 38, 0.1);
-            padding: 5px;
+            padding: 8px;
             border-radius: 5px;
             margin-bottom: 15px;
         }
 
         input[type="number"] {
-            width: 100px;
+            width: 120px;
             padding: 15px;
             font-family: 'Bungee';
             font-size: 1.5rem;
@@ -56,6 +56,7 @@
             text-align: center;
             margin-bottom: 15px;
             background: white;
+            outline: none;
         }
 
         .btn-check {
@@ -68,13 +69,14 @@
             cursor: pointer;
             box-shadow: 4px 4px 0px #880e4f;
             transition: 0.1s;
+            width: 100%;
         }
 
         .btn-check:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
 
         #msg {
             margin-top: 20px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             min-height: 1.5em;
             font-weight: bold;
         }
@@ -82,7 +84,7 @@
         .attempts {
             margin-top: 15px;
             font-size: 0.8rem;
-            border-top: 1px solid rgba(0,0,0,0.1);
+            border-top: 2px solid rgba(0,0,0,0.05);
             padding-top: 10px;
         }
 
@@ -91,24 +93,86 @@
             color: var(--tarjeta);
             text-decoration: none;
             font-size: 0.8rem;
-            border-bottom: 1px solid var(--primario);
+            border-bottom: 2px solid var(--primario);
         }
     </style>
 </head>
 <body>
 
     <div class="game-card">
-        <h2>¿QUÉ NÚMERO ESTOY PENSANDO?</h2>
-        <div class="range-info">PISTA: ESTÁ ENTRE 1 Y 100</div>
+        <h2>¿EN QUÉ NÚMERO PIENSO?</h2>
+        <div id="pista" class="range-info">PISTA: DEL 1 AL 100</div>
         
-        <input type="number" id="num" min="1" max="100" placeholder="?">
+        <input type="number" id="inputNum" min="1" max="100" placeholder="?">
         <br>
-        <button class="btn-check" onclick="adivinar()">¿ES ESTE?</button>
+        <button id="btnAdivinar" class="btn-check" onclick="adivinar()">¿ES ESTE?</button>
 
-        <p id="msg">¡SUERTE!</p>
+        <p id="msg">¡DALE AHÍ!</p>
 
         <div class="attempts">
             INTENTOS: <span id="tries">0</span>
         </div>
         
-        <button onclick="reiniciar()" style="margin-top:15px; background:none; border:none; color: #666; font-size:0.6rem; cursor:pointer; text-decoration:underline;">REINICIAR N
+        <button onclick="reiniciar()" style="margin-top:15px; background:none; border:none; color: #777; font-size:0.6rem; cursor:pointer; text-decoration:underline; font-family:'Bungee';">REINICIAR</button>
+    </div>
+
+    <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
+
+    <script>
+        let secreto = Math.floor(Math.random() * 100) + 1;
+        let intentos = 0;
+        let minActual = 1;
+        let maxActual = 100;
+
+        // Función principal
+        function adivinar() {
+            const input = document.getElementById('inputNum');
+            const n = parseInt(input.value);
+            const m = document.getElementById('msg');
+            const t = document.getElementById('tries');
+
+            if (isNaN(n)) {
+                m.innerText = "¡PON UN NÚMERO!";
+                return;
+            }
+
+            intentos++;
+            t.innerText = intentos;
+
+            if (n > secreto) {
+                m.innerText = "¡MÁS BAJO!";
+                m.style.color = "#e91e63";
+                if (n < maxActual) maxActual = n;
+            } 
+            else if (n < secreto) {
+                m.innerText = "¡MÁS ALTO!";
+                m.style.color = "#4572e6";
+                if (n > minActual) minActual = n;
+            } 
+            else {
+                m.innerText = "¡OLEEE! ¡LO HAS CLAVAO!";
+                m.style.color = "#2e7d32";
+                m.style.fontSize = "1.5rem";
+            }
+            
+            document.getElementById('pista').innerText = `PISTA: ESTÁ ENTRE ${minActual} Y ${maxActual}`;
+            
+            // Limpiar y enfocar para el siguiente intento
+            input.value = "";
+            input.focus();
+        }
+
+        // ARREGLO DEL ENTER: Escuchamos el evento en el input
+        document.getElementById('inputNum').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Evitamos líos del navegador
+                adivinar();
+            }
+        });
+
+        function reiniciar() {
+            location.reload(); // La forma más limpia de resetear todo
+        }
+    </script>
+</body>
+</html>

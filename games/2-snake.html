@@ -3,17 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Snake Clone </title>
+    <title>Snake Real | Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
-        body { background: #4a752c; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Arial', sans-serif; overflow: hidden; }
-        #header { background: #4a752c; width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px; border-radius: 8px 8px 0 0; }
-        .score-container { display: flex; align-items: center; color: white; font-size: 24px; font-weight: bold; }
-        .score-container img { width: 30px; margin-right: 10px; }
-        #game-container { position: relative; border: 10px solid #578a34; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --texto: #ffffff;
+        }
+        body { 
+            background: var(--fondo); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: 'Bungee', cursive; 
+            overflow: hidden; 
+            color: var(--tarjeta);
+        }
+        #header { 
+            background: var(--primario); 
+            width: 400px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 20px; 
+            border-radius: 15px 15px 0 0; 
+            box-sizing: border-box;
+            box-shadow: 0 -4px 0 rgba(0,0,0,0.2) inset;
+        }
+        .score-container { display: flex; align-items: center; color: white; font-size: 18px; }
+        #game-container { position: relative; border: 10px solid var(--tarjeta); border-radius: 0 0 15px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         canvas { background: #aad751; display: block; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); color: white; border-radius: 4px; display: none; }
-        button { padding: 10px 25px; font-size: 18px; border: none; border-radius: 20px; background: #4a752c; color: white; cursor: pointer; font-weight: bold; }
-        button:hover { background: #578a34; }
+        .overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background: rgba(16, 44, 38, 0.8); color: var(--tarjeta); display: none; 
+        }
+        button { 
+            padding: 12px 25px; font-family: 'Bungee'; border: none; border-radius: 10px; 
+            background: var(--primario); color: white; cursor: pointer; box-shadow: 4px 4px 0px #880e4f;
+        }
+        button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
     </style>
 </head>
 <body>
@@ -26,8 +60,8 @@
     <div id="game-container">
         <canvas id="snakeGame" width="400" height="400"></canvas>
         <div id="overlay" class="overlay">
-            <h1 id="status">¡Casi!</h1>
-            <button onclick="resetGame()">Jugar de nuevo</button>
+            <h1>¡CASI!</h1>
+            <button onclick="resetGame()">REINTENTAR</button>
         </div>
     </div>
 
@@ -49,15 +83,51 @@
 
         function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min)) + min; }
 
+        function drawSnakePart(cell, index) {
+            const isHead = index === 0;
+            const isTail = index === snake.cells.length - 1;
+            
+            ctx.fillStyle = isHead ? '#2c3e50' : '#4572e6'; // Cabeza un poco más oscura
+            
+            // Dibujar cuerpo redondeado
+            let radius = isHead ? 8 : (isTail ? 4 : 6); // Se estrecha en la cola
+            ctx.beginPath();
+            ctx.roundRect(cell.x + 1, cell.y + 1, grid - 2, grid - 2, [radius]);
+            ctx.fill();
+
+            // Dibujar Ojos si es la cabeza
+            if (isHead) {
+                ctx.fillStyle = 'white';
+                // Ojo izquierdo
+                ctx.beginPath();
+                ctx.arc(cell.x + 6, cell.y + 6, 3, 0, Math.PI * 2);
+                ctx.fill();
+                // Ojo derecho
+                ctx.beginPath();
+                ctx.arc(cell.x + 14, cell.y + 6, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                // Pupila (basada en dirección)
+                let px = snake.dx > 0 ? 1 : (snake.dx < 0 ? -1 : 0);
+                let py = snake.dy > 0 ? 1 : (snake.dy < 0 ? -1 : 0);
+                ctx.beginPath();
+                ctx.arc(cell.x + 6 + px, cell.y + 6 + py, 1.5, 0, Math.PI * 2);
+                ctx.arc(cell.x + 14 + px, cell.y + 6 + py, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
         function loop() {
+            if (overlay.style.display === 'flex') return;
             requestAnimationFrame(loop);
-            if (++count < 6) return; // Velocidad estilo Google
+            if (++count < 6) return;
             count = 0;
             ctx.clearRect(0,0,canvas.width,canvas.height);
 
-            // Dibujar tablero tipo damero
-            for (let i = 0; i < canvas.width / grid; i++) {
-                for (let j = 0; j < canvas.height / grid; j++) {
+            // Tablero Damero (estilo Google)
+            for (let i = 0; i < 20; i++) {
+                for (let j = 0; j < 20; j++) {
                     ctx.fillStyle = (i + j) % 2 === 0 ? '#aad751' : '#a2d149';
                     ctx.fillRect(i * grid, j * grid, grid, grid);
                 }
@@ -66,37 +136,36 @@
             snake.x += snake.dx;
             snake.y += snake.dy;
 
-            // Paredes
             if (snake.x < 0 || snake.x >= canvas.width || snake.y < 0 || snake.y >= canvas.height) endGame();
 
             snake.cells.unshift({x: snake.x, y: snake.y});
             if (snake.cells.length > snake.maxCells) snake.cells.pop();
 
-            // Dibujar manzana (roja potente)
+            // Dibujar Manzana
             ctx.fillStyle = '#e74c3c';
             ctx.beginPath();
-            ctx.arc(apple.x + grid/2, apple.y + grid/2, grid/2 - 2, 0, 2 * Math.PI);
+            ctx.arc(apple.x + grid/2, apple.y + grid/2, grid/2 - 2, 0, Math.PI * 2);
             ctx.fill();
+            // Rabito de la manzana
+            ctx.fillStyle = '#4a752c';
+            ctx.fillRect(apple.x + grid/2 - 1, apple.y + 2, 2, 4);
 
-            // Dibujar serpiente (azul de Google o verde oscuro)
-            ctx.fillStyle = '#4572e6'; 
-            snake.cells.forEach(function(cell, index) {
-                ctx.beginPath();
-                ctx.roundRect(cell.x, cell.y, grid-1, grid-1, [4]);
-                ctx.fill();
+            // Dibujar Serpiente
+            snake.cells.forEach(drawSnakePart);
 
-                if (cell.x === apple.x && cell.y === apple.y) {
-                    snake.maxCells++;
-                    score++;
-                    scoreEl.innerText = score;
-                    apple.x = getRandomInt(0, 20) * grid;
-                    apple.y = getRandomInt(0, 20) * grid;
-                }
+            // Colisión con manzana
+            if (snake.x === apple.x && snake.y === apple.y) {
+                snake.maxCells++;
+                score++;
+                scoreEl.innerText = score;
+                apple.x = getRandomInt(0, 20) * grid;
+                apple.y = getRandomInt(0, 20) * grid;
+            }
 
-                for (let i = index + 1; i < snake.cells.length; i++) {
-                    if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) endGame();
-                }
-            });
+            // Colisión con cuerpo
+            for (let i = 1; i < snake.cells.length; i++) {
+                if (snake.x === snake.cells[i].x && snake.y === snake.cells[i].y) endGame();
+            }
         }
 
         function endGame() {
@@ -110,10 +179,10 @@
 
         function resetGame() {
             snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
-            score = 0;
-            scoreEl.innerText = 0;
+            score = 0; scoreEl.innerText = 0;
             apple = { x: getRandomInt(0, 20) * grid, y: getRandomInt(0, 20) * grid };
             overlay.style.display = 'none';
+            requestAnimationFrame(loop);
         }
 
         document.addEventListener('keydown', function(e) {

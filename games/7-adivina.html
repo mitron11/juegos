@@ -1,16 +1,114 @@
-<div style="text-align:center; font-family:sans-serif;">
-    <h2>¿Qué número estoy pensando? (1-100)</h2>
-    <input type="number" id="num">
-    <button onclick="adivinar()">¿Es este?</button>
-    <p id="msg"></p>
-</div>
-<script>
-    let secreto = Math.floor(Math.random()*100)+1;
-    function adivinar() {
-        let n = document.getElementById('num').value;
-        let m = document.getElementById('msg');
-        if(n > secreto) m.innerText = "¡Te has pasao, pisha! Más bajo.";
-        else if(n < secreto) m.innerText = "¡Te quedas corto! Más alto.";
-        else m.innerText = "¡OLEEE! ¡Lo has clavao!";
-    }
-</script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adivina el Número | Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --texto: #ffffff;
+        }
+
+        body { 
+            font-family: 'Bungee', cursive; 
+            background: var(--fondo); 
+            color: var(--texto); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0;
+        }
+
+        .game-card {
+            background: var(--tarjeta);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 10px 10px 0px var(--primario);
+            text-align: center;
+            color: var(--fondo);
+            width: 90%;
+            max-width: 350px;
+        }
+
+        h2 { font-size: 1.2rem; margin-top: 0; color: var(--primario); }
+
+        .range-info {
+            font-size: 0.8rem;
+            background: rgba(16, 44, 38, 0.1);
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 15px;
+            font-family: 'Bungee';
+            font-size: 1.5rem;
+            border: 3px solid var(--fondo);
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .btn-check {
+            background: var(--primario);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Bungee';
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #880e4f;
+            transition: 0.1s;
+        }
+
+        .btn-check:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
+
+        #msg {
+            margin-top: 20px;
+            font-size: 1rem;
+            min-height: 1.5em;
+            font-weight: bold;
+        }
+
+        .attempts {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-top: 10px;
+        }
+
+        .back-link {
+            margin-top: 30px;
+            color: var(--tarjeta);
+            text-decoration: none;
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--primario);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <h2>¿QUÉ NÚMERO ESTOY PENSANDO?</h2>
+        <div class="range-info">PISTA: ESTÁ ENTRE 1 Y 100</div>
+        
+        <input type="number" id="num" min="1" max="100" placeholder="?">
+        <br>
+        <button class="btn-check" onclick="adivinar()">¿ES ESTE?</button>
+
+        <p id="msg">¡SUERTE!</p>
+
+        <div class="attempts">
+            INTENTOS: <span id="tries">0</span>
+        </div>
+        
+        <button onclick="reiniciar()" style="margin-top:15px; background:none; border:none; color: #666; font-size:0.6rem; cursor:pointer; text-decoration:underline;">REINICIAR N

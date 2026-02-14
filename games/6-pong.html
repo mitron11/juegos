@@ -1,127 +1,187 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>CodePen - A Pen by mitron11</title>
-  
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego Pong</title>
+    <title>Pong Pro | Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --texto: #ffffff;
+        }
+
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #000;
+            background-color: var(--fondo);
+            font-family: 'Bungee', cursive;
+            color: var(--tarjeta);
+            overflow: hidden;
         }
+
+        .ui-panel {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
         canvas {
-            border: 1px solid #fff;
+            border: 5px solid var(--tarjeta);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(233, 30, 99, 0.3);
+            background-color: rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            margin-top: 15px;
+            background: var(--tarjeta);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: var(--fondo);
+            display: flex;
+            gap: 20px;
+            font-size: 0.8rem;
+        }
+
+        select {
+            font-family: 'Bungee';
+            background: var(--fondo);
+            color: white;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
+
+    <div class="ui-panel">
+        <h1 style="margin: 5px; font-size: 1.5rem;">PONG PRO</h1>
+        <div id="score" style="font-size: 2rem;">0 - 0</div>
+    </div>
+
     <canvas id="pongCanvas" width="800" height="400"></canvas>
+
+    <div class="controls">
+        <div>
+            MODO: 
+            <select id="gameMode">
+                <option value="pvc">VS IA</option>
+                <option value="pvp">2 JUGADORES</option>
+            </select>
+        </div>
+        <div>TÚ: ↑↓ | RIVAL: W-S</div>
+    </div>
+
     <script>
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
+        const gameMode = document.getElementById('gameMode');
 
-        const paddleWidth = 10, paddleHeight = 100, ballRadius = 10;
-        let upArrowPressed = false, downArrowPressed = false;
+        const paddleWidth = 12, paddleHeight = 80, ballRadius = 8;
+        let p1Score = 0, p2Score = 0;
 
-        const player = {
-            x: 0,
-            y: canvas.height / 2 - paddleHeight / 2,
-            width: paddleWidth,
-            height: paddleHeight,
-            color: 'white',
-            dy: 5
-        };
+        const player = { x: 10, y: canvas.height/2 - 40, w: paddleWidth, h: paddleHeight, color: '#e91e63', score: 0 };
+        const opponent = { x: canvas.width - 22, y: canvas.height/2 - 40, w: paddleWidth, h: paddleHeight, color: '#F7EFCE', score: 0 };
+        const ball = { x: canvas.width/2, y: canvas.height/2, r: ballRadius, speed: 7, dx: 7, dy: 7 };
 
-        const ai = {
-            x: canvas.width - paddleWidth,
-            y: canvas.height / 2 - paddleHeight / 2,
-            width: paddleWidth,
-            height: paddleHeight,
-            color: 'white',
-            dy: 5
-        };
+        let keys = {};
 
-        const ball = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            radius: ballRadius,
-            speed: 5,
-            dx: 5,
-            dy: 5,
-            color: 'white'
-        };
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
 
-        function drawRect(x, y, w, h, color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, w, h);
-        }
-
-        function drawCircle(x, y, r, color) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2, false);
-            ctx.closePath();
-            ctx.fill();
-        }
-
-        function draw() {
-            // Clear the canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw the player and ai paddles
-            drawRect(player.x, player.y, player.width, player.height, player.color);
-            drawRect(ai.x, ai.y, ai.width, ai.height, ai.color);
-
-            // Draw the ball
-            drawCircle(ball.x, ball.y, ball.radius, ball.color);
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.speed = 7;
+            ball.dx = -ball.dx;
+            document.getElementById('score').innerText = `${player.score} - ${opponent.score}`;
         }
 
         function update() {
-            // Move paddles
-            if (upArrowPressed && player.y > 0) {
-                player.y -= player.dy;
-            } else if (downArrowPressed && player.y < canvas.height - player.height) {
-                player.y += player.dy;
+            // Movimiento Jugador 1 (Flechas)
+            if (keys['ArrowUp'] && player.y > 0) player.y -= 8;
+            if (keys['ArrowDown'] && player.y < canvas.height - player.h) player.y += 8;
+
+            // Movimiento Jugador 2 o IA
+            if (gameMode.value === 'pvp') {
+                if (keys['w'] && opponent.y > 0) opponent.y -= 8;
+                if (keys['s'] && opponent.y < canvas.height - opponent.h) opponent.y += 8;
+            } else {
+                let aiTarget = ball.y - opponent.h / 2;
+                opponent.y += (aiTarget - opponent.y) * 0.12;
             }
 
-            // Move the ball
+            // Movimiento Bola
             ball.x += ball.dx;
             ball.y += ball.dy;
 
-            // Ball collision with top and bottom walls
-            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-                ball.dy *= -1;
+            // Rebote Paredes
+            if (ball.y + ball.r > canvas.height || ball.y - ball.r < 0) ball.dy *= -1;
+
+            // Rebote Palas
+            let activePaddle = (ball.x < canvas.width/2) ? player : opponent;
+            
+            if (collision(ball, activePaddle)) {
+                let collidePoint = (ball.y - (activePaddle.y + activePaddle.h/2)) / (activePaddle.h/2);
+                let angleRad = (Math.PI/4) * collidePoint;
+                let direction = (ball.x < canvas.width/2) ? 1 : -1;
+                
+                ball.dx = direction * ball.speed * Math.cos(angleRad);
+                ball.dy = ball.speed * Math.sin(angleRad);
+                ball.speed += 0.3; // Acelera con cada golpe
             }
 
-            // Ball collision with paddles
-            if (ball.x - ball.radius < player.x + player.width &&
-                ball.y + ball.radius > player.y &&
-                ball.y - ball.radius < player.y + player.height) {
-                ball.dx *= -1;
+            // Puntos
+            if (ball.x - ball.r < 0) {
+                opponent.score++;
+                resetBall();
+            } else if (ball.x + ball.r > canvas.width) {
+                player.score++;
+                resetBall();
             }
+        }
 
-            if (ball.x + ball.radius > ai.x &&
-                ball.y + ball.radius > ai.y &&
-                ball.y - ball.radius < ai.y + ai.height) {
-                ball.dx *= -1;
-            }
+        function collision(b, p) {
+            return b.x + b.r > p.x && b.y + b.r > p.y && b.x - b.r < p.x + p.w && b.y - b.r < p.y + p.h;
+        }
 
-            // AI movement
-            ai.y += ((ball.y - (ai.y + ai.height / 2))) * 0.09;
+        function draw() {
+            // Fondo con estela (para efecto blur)
+            ctx.fillStyle = 'rgba(16, 44, 38, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Línea central
+            ctx.setLineDash([10, 10]);
+            ctx.strokeStyle = 'rgba(247, 239, 206, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, 0);
+            ctx.lineTo(canvas.width/2, canvas.height);
+            ctx.stroke();
+
+            // Dibujar Palas con brillo
+            drawGlowRect(player.x, player.y, player.w, player.h, player.color);
+            drawGlowRect(opponent.x, opponent.y, opponent.w, opponent.h, opponent.color);
+
+            // Dibujar Bola
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        function drawGlowRect(x, y, w, h, color) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = color;
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
         }
 
         function loop() {
@@ -130,27 +190,7 @@
             requestAnimationFrame(loop);
         }
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'ArrowUp') {
-                upArrowPressed = true;
-            } else if (e.key === 'ArrowDown') {
-                downArrowPressed = true;
-            }
-        });
-
-        document.addEventListener('keyup', function (e) {
-            if (e.key === 'ArrowUp') {
-                upArrowPressed = false;
-            } else if (e.key === 'ArrowDown') {
-                downArrowPressed = false;
-            }
-        });
-
         loop();
     </script>
-</body>
-</html>
-<!-- partial -->
-  
 </body>
 </html>

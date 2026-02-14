@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Dash | Deluxe</title>
+    <title>Cyber Dash | Suite Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
         :root {
-            --fondo: #0a0a0a;
-            --primario: #00f2ff;
-            --secundario: #e91e63;
+            --fondo: #102C26;
             --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --detalle: #4caf50;
         }
 
         body {
             margin: 0;
             background: var(--fondo);
-            color: white;
+            color: var(--tarjeta);
             font-family: 'Bungee', cursive;
             display: flex;
             flex-direction: column;
@@ -26,17 +26,18 @@
             overflow: hidden;
         }
 
-        /* Menú de inicio mejorado para que no bloquee */
         #ui-menu {
             position: absolute;
-            background: rgba(0,0,0,0.95);
+            background: rgba(16, 44, 38, 0.95);
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100; /* Aseguramos que esté arriba */
+            z-index: 100;
+            border: 10px solid var(--primario);
+            box-sizing: border-box;
         }
 
         .skin-selector {
@@ -48,26 +49,28 @@
         .skin-option {
             width: 70px;
             height: 70px;
-            border: 4px solid white;
+            border: 4px solid var(--tarjeta);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
             transition: 0.2s;
-            background: #222;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
         }
 
         .skin-option.selected {
             border-color: var(--primario);
             transform: scale(1.1);
             box-shadow: 0 0 20px var(--primario);
-            background: #003336;
+            background: var(--tarjeta);
         }
 
         canvas {
-            border-bottom: 5px solid var(--primario);
-            background: #000;
+            border: 4px solid var(--tarjeta);
+            background: #081613;
+            box-shadow: 10px 10px 0px var(--primario);
             display: block;
         }
 
@@ -75,38 +78,42 @@
             position: absolute;
             top: 20px;
             font-size: 1.5rem;
-            color: var(--primario);
+            color: var(--tarjeta);
             z-index: 5;
+            background: var(--primario);
+            padding: 5px 20px;
+            border-radius: 50px;
         }
 
         .btn-start {
             padding: 15px 50px;
             font-family: 'Bungee';
             background: var(--primario);
-            color: black;
+            color: white;
             border: none;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 1.5rem;
             margin-top: 20px;
-            transition: 0.2s;
+            box-shadow: 4px 4px 0px #880e4f;
         }
 
-        .btn-start:hover { transform: scale(1.05); filter: brightness(1.2); }
+        .btn-start:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
 
-        .back-link { margin-top: 30px; color: var(--tarjeta); text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid var(--primario); }
+        .back-link { margin-top: 30px; color: var(--tarjeta); text-decoration: none; font-size: 0.9rem; border-bottom: 2px solid var(--primario); }
     </style>
 </head>
 <body>
 
     <div id="ui-menu">
-        <h1 style="color: var(--primario); font-size: 3rem; margin: 0;">CYBER DASH</h1>
-        <p style="margin-top: 10px;">SELECCIONA TU AVATAR</p>
+        <h1 style="color: var(--primario); font-size: 3rem; margin: 0; text-shadow: 3px 3px 0px #000;">CYBER DASH</h1>
+        <p style="margin-top: 10px; color: var(--tarjeta);">¿QUÉ AVATAR ERES, PILLA?</p>
         <div class="skin-selector">
             <div id="skin1" class="skin-option selected" onclick="setSkin('🟦', 'skin1')">🟦</div>
             <div id="skin2" class="skin-option" onclick="setSkin('🛸', 'skin2')">🛸</div>
             <div id="skin3" class="skin-option" onclick="setSkin('🔺', 'skin3')">🔺</div>
         </div>
-        <button class="btn-start" onclick="startGame()">¡A JIERRO!</button>
+        <button class="btn-start" onclick="startGame()">¡DALE CAÑA!</button>
         <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
     </div>
 
@@ -141,19 +148,12 @@
             document.getElementById('ui-menu').style.display = 'none';
             resetGameState();
             gameActive = true;
-            // No llamamos a loop aquí porque ya se está ejecutando
         }
 
         function resetGameState() {
-            score = 0;
-            speed = 7;
-            frames = 0;
-            obstacles = [];
-            particles = [];
-            player.y = 230;
-            player.dy = 0;
-            player.rotation = 0;
-            player.grounded = true;
+            score = 0; speed = 7; frames = 0;
+            obstacles = []; particles = [];
+            player.y = 230; player.dy = 0; player.rotation = 0;
             document.getElementById('score').innerText = "0";
         }
 
@@ -161,125 +161,91 @@
             const isTall = Math.random() > 0.6;
             obstacles.push({
                 x: canvas.width,
-                y: isTall ? 200 : 230,
+                y: isTall ? 190 : 230,
                 w: 30,
-                h: isTall ? 70 : 40
+                h: isTall ? 80 : 40
             });
-        }
-
-        function createParticles(x, y) {
-            for(let i=0; i<3; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: -Math.random() * 4 - 2,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 1
-                });
-            }
         }
 
         function update() {
             if (!gameActive) return;
-
             frames++;
             score++;
             document.getElementById('score').innerText = Math.floor(score/10);
 
-            // Gravedad y Salto
             player.dy += player.gravity;
             player.y += player.dy;
 
             if (player.y > 230) {
-                player.y = 230;
-                player.dy = 0;
-                player.grounded = true;
-                player.rotation = 0;
+                player.y = 230; player.dy = 0; player.grounded = true; player.rotation = 0;
             } else {
-                player.grounded = false;
-                player.rotation += 0.15;
+                player.grounded = false; player.rotation += 0.15;
             }
 
-            // Aumento de velocidad
             if (frames % 500 === 0) speed += 0.5;
+            if (frames % Math.floor(100 / (speed/7)) === 0) spawnObstacle();
 
-            // Generar obstáculos
-            if (frames % Math.floor(100 / (speed/7)) === 0) {
-                spawnObstacle();
+            // Partículas con el color Verde de la suite
+            if(player.grounded && frames % 5 === 0) {
+                for(let i=0; i<2; i++) particles.push({
+                    x: player.x, y: player.y + 35,
+                    vx: -speed, vy: (Math.random()-0.5)*4, life: 1
+                });
             }
 
-            // Partículas de suelo
-            if(player.grounded && frames % 4 === 0) createParticles(player.x, player.y + 35);
-
-            // Lógica obstáculos
             for(let i = obstacles.length - 1; i >= 0; i--) {
                 obstacles[i].x -= speed;
-
-                // Colisión (Caja de colisión algo más pequeña para que sea justo)
-                if (player.x + 5 < obstacles[i].x + obstacles[i].w &&
-                    player.x + player.w - 5 > obstacles[i].x &&
-                    player.y + 5 < obstacles[i].y + obstacles[i].h &&
-                    player.y + player.h - 5 > obstacles[i].y) {
+                if (player.x + 8 < obstacles[i].x + obstacles[i].w &&
+                    player.x + player.w - 8 > obstacles[i].x &&
+                    player.y + 8 < obstacles[i].y + obstacles[i].h &&
+                    player.y + player.h - 8 > obstacles[i].y) {
                     gameOver();
                 }
-
                 if (obstacles[i].x + obstacles[i].w < 0) obstacles.splice(i, 1);
             }
 
-            // Lógica partículas
-            for(let i = particles.length - 1; i >= 0; i--) {
-                particles[i].x += particles[i].vx;
-                particles[i].y += particles[i].vy;
-                particles[i].life -= 0.03;
-                if(particles[i].life <= 0) particles.splice(i, 1);
-            }
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if(p.life <= 0) particles.splice(i, 1);
+            });
         }
 
         function draw() {
-            ctx.fillStyle = "#000";
+            ctx.fillStyle = "#102C26"; // Fondo oscuro de la suite
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Rejilla de fondo (Scroll)
-            ctx.strokeStyle = "rgba(0, 242, 255, 0.1)";
-            ctx.lineWidth = 1;
+            // Rejilla color crema suave
+            ctx.strokeStyle = "rgba(247, 239, 206, 0.05)";
             let offset = (frames * speed) % 50;
             for(let x = 0; x <= canvas.width + 50; x += 50) {
-                ctx.beginPath();
-                ctx.moveTo(x - offset, 0);
-                ctx.lineTo(x - offset, 270);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x - offset, 0); ctx.lineTo(x - offset, 270); ctx.stroke();
             }
 
-            // Suelo
-            ctx.strokeStyle = "#00f2ff";
+            // Suelo color crema (tarjeta)
+            ctx.strokeStyle = "#F7EFCE";
             ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(0, 270);
-            ctx.lineTo(canvas.width, 270);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(canvas.width, 270); ctx.stroke();
 
-            // Partículas
+            // Partículas verdes (hierba)
             particles.forEach(p => {
-                ctx.fillStyle = `rgba(0, 242, 255, ${p.life})`;
-                ctx.fillRect(p.x, p.y, 3, 3);
+                ctx.fillStyle = `rgba(76, 175, 80, ${p.life})`;
+                ctx.fillRect(p.x, p.y, 4, 4);
             });
 
             // Jugador
             ctx.save();
             ctx.translate(player.x + player.w/2, player.y + player.h/2);
             ctx.rotate(player.rotation);
-            ctx.font = "34px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
+            ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(currentSkin, 0, 0);
             ctx.restore();
 
-            // Obstáculos
+            // Obstáculos color Rosa (primario)
             ctx.fillStyle = "#e91e63";
             obstacles.forEach(obs => {
                 ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-                // Brillo neón
-                ctx.strokeStyle = "white";
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = "#F7EFCE";
+                ctx.lineWidth = 2;
                 ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
             });
         }
@@ -287,36 +253,16 @@
         function gameOver() {
             gameActive = false;
             document.getElementById('ui-menu').style.display = 'flex';
-            document.querySelector('#ui-menu h1').innerText = "¡CRASH!";
-            document.querySelector('#ui-menu p').innerText = "SCORE: " + Math.floor(score/10);
+            document.querySelector('#ui-menu h1').innerText = "¡OJO!";
+            document.querySelector('#ui-menu p').innerText = "PUNTOS: " + Math.floor(score/10);
         }
 
-        function jump() {
-            if (player.grounded && gameActive) {
-                player.dy = -player.jumpForce;
-                player.grounded = false;
-            }
-        }
+        function jump() { if (player.grounded && gameActive) { player.dy = -player.jumpForce; player.grounded = false; } }
+        
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); } });
+        canvas.addEventListener('mousedown', (e) => { e.preventDefault(); jump(); });
 
-        // Controles
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                e.preventDefault();
-                jump();
-            }
-        });
-        canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            jump();
-        });
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-
-        // Arrancamos el loop perpetuo
+        function loop() { update(); draw(); requestAnimationFrame(loop); }
         loop();
     </script>
 </body>

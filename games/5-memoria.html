@@ -1,12 +1,271 @@
-<body style="text-align:center">
-  <h2>Parejas de Emojis</h2>
-  <div id="tablero" style="display:grid; grid-template-columns: repeat(4, 50px); gap:10px; width:230px; margin:auto"></div>
-  <script>
-    let ems = ["💃","💃","🌞","🌞","🍤","🍤","🥘","🥘"], bar = ems.sort(()=>Math.random()-0.5);
-    bar.forEach(e => {
-      let b = document.createElement("button"); b.innerText = "?";
-      b.onclick = () => { b.innerText = e; };
-      document.getElementById("tablero").appendChild(b);
-    });
-  </script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memoria Pro | IA Battle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --secundario: #4572e6;
+            --texto: #ffffff;
+        }
+
+        body { 
+            font-family: 'Bungee', cursive; 
+            background: var(--fondo); 
+            color: var(--texto); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0; 
+            padding: 20px;
+        }
+
+        .header-ui {
+            background: var(--tarjeta);
+            color: var(--fondo);
+            padding: 15px;
+            border-radius: 15px;
+            border: 4px solid var(--primario);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        #tablero { 
+            display: grid; 
+            grid-template-columns: repeat(4, 80px); 
+            gap: 10px; 
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .card { 
+            width: 80px; 
+            height: 80px; 
+            background: var(--tarjeta); 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 2rem; 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s, background 0.3s;
+            transform-style: preserve-3d;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
+        }
+
+        .card.hidden { color: transparent; background: var(--primario); }
+        .card.hidden::before { content: "?"; color: white; }
+        .card.matched { background: #aad751; cursor: default; transform: scale(0.9); opacity: 0.7; }
+        .card.flipped { transform: rotateY(180deg); }
+
+        .controls { margin-top: 20px; text-align: center; }
+        
+        select, button {
+            font-family: 'Bungee';
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin: 5px;
+        }
+
+        .btn-main { background: var(--primario); color: white; cursor: pointer; box-shadow: 4px 4px 0px #880e4f; }
+        .btn-main:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
+        
+        .turn-indicator {
+            margin-bottom: 10px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            background: var(--primario);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>MEMO-BATTLE</h1>
+
+    <div class="header-ui">
+        <div id="turno-texto" class="turn-indicator">TU TURNO</div>
+        <div class="stats-grid">
+            <div>TÚ: <span id="puntos-h">0</span></div>
+            <div>IA: <span id="puntos-ia">0</span></div>
+        </div>
+    </div>
+
+    <div id="tablero"></div>
+
+    <div class="controls">
+        <label>DIFICULTAD IA:</label>
+        <select id="diff">
+            <option value="0.2">FÁCIL (OLVIDADIZA)</option>
+            <option value="0.6">NORMAL</option>
+            <option value="1">DIOS (MEMORIA TOTAL)</option>
+        </select>
+        <br>
+        <button class="btn-main" onclick="initGame()">REINICIAR JUEGO</button>
+    </div>
+
+    <script>
+        const emojis = ["💃","🌞","🍤","🥘","🍷","💃","🌞","🍤","🥘","🍷","🥨","🥨","⚽","⚽","🎸","🎸"];
+        let board = [];
+        let flippedCards = [];
+        let scores = { h: 0, ia: 0 };
+        let isIA = false;
+        let aiMemory = {}; // La IA guardará aquí lo que ve: { emoji: [indices] }
+        let busy = false;
+
+        function initGame() {
+            const tablero = document.getElementById("tablero");
+            tablero.innerHTML = "";
+            board = [...emojis].sort(() => Math.random() - 0.5);
+            scores = { h: 0, ia: 0 };
+            aiMemory = {};
+            flippedCards = [];
+            isIA = false;
+            busy = false;
+            updateUI();
+
+            board.forEach((emoji, i) => {
+                const card = document.createElement("div");
+                card.className = "card hidden";
+                card.dataset.index = i;
+                card.onclick = () => handleCardClick(i);
+                tablero.appendChild(card);
+            });
+        }
+
+        function handleCardClick(i) {
+            if (busy || isIA || flippedCards.includes(i) || board[i] === null) return;
+            revealCard(i);
+        }
+
+        function revealCard(i) {
+            const cards = document.querySelectorAll(".card");
+            cards[i].innerText = board[i];
+            cards[i].classList.remove("hidden");
+            flippedCards.push(i);
+
+            // La IA (y tú) "aprende" lo que se acaba de revelar
+            if (!aiMemory[board[i]]) aiMemory[board[i]] = new Set();
+            aiMemory[board[i]].add(i);
+
+            if (flippedCards.length === 2) {
+                busy = true;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [idx1, idx2] = flippedCards;
+            const cards = document.querySelectorAll(".card");
+
+            if (board[idx1] === board[idx2]) {
+                // ¡Pareja!
+                setTimeout(() => {
+                    cards[idx1].classList.add("matched");
+                    cards[idx2].classList.add("matched");
+                    if (isIA) scores.ia++; else scores.h++;
+                    
+                    // Borrar de la memoria de la IA porque ya no están en juego
+                    delete aiMemory[board[idx1]];
+                    
+                    board[idx1] = null;
+                    board[idx2] = null;
+                    flippedCards = [];
+                    busy = false;
+                    updateUI();
+                    checkGameOver();
+                    if (isIA) setTimeout(aiTurn, 800);
+                }, 500);
+            } else {
+                // No hay pareja
+                setTimeout(() => {
+                    cards[idx1].classList.add("hidden");
+                    cards[idx1].innerText = "";
+                    cards[idx2].classList.add("hidden");
+                    cards[idx2].innerText = "";
+                    flippedCards = [];
+                    isIA = !isIA;
+                    busy = false;
+                    updateUI();
+                    if (isIA) setTimeout(aiTurn, 800);
+                }, 1000);
+            }
+        }
+
+        function aiTurn() {
+            if (!isIA || busy) return;
+            
+            const diff = parseFloat(document.getElementById("diff").value);
+            const available = board.map((e, i) => e !== null ? i : null).filter(v => v !== null);
+            
+            // 1. ¿Recuerda la IA alguna pareja?
+            let move1, move2;
+            for (let emoji in aiMemory) {
+                let spots = Array.from(aiMemory[emoji]).filter(idx => board[idx] !== null);
+                if (spots.length >= 2 && Math.random() < diff) {
+                    [move1, move2] = spots;
+                    break;
+                }
+            }
+
+            if (move1 !== undefined) {
+                revealCard(move1);
+                setTimeout(() => revealCard(move2), 600);
+            } else {
+                // 2. Si no recuerda pareja, elige una al azar
+                move1 = available[Math.floor(Math.random() * available.length)];
+                revealCard(move1);
+                
+                setTimeout(() => {
+                    // ¿El segundo clic lo sabe por memoria?
+                    const currentEmoji = board[move1];
+                    const otherSpot = Array.from(aiMemory[currentEmoji] || []).find(idx => idx !== move1 && board[idx] !== null);
+                    
+                    if (otherSpot !== undefined && Math.random() < diff) {
+                        move2 = otherSpot;
+                    } else {
+                        const remain = available.filter(idx => idx !== move1);
+                        move2 = remain[Math.floor(Math.random() * remain.length)];
+                    }
+                    revealCard(move2);
+                }, 600);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById("puntos-h").innerText = scores.h;
+            document.getElementById("puntos-ia").innerText = scores.ia;
+            const turnoTxt = document.getElementById("turno-texto");
+            turnoTxt.innerText = isIA ? "TURNO IA..." : "TU TURNO";
+            turnoTxt.style.background = isIA ? "#4572e6" : "#e91e63";
+        }
+
+        function checkGameOver() {
+            if (board.every(e => e === null)) {
+                const winMsg = scores.h > scores.ia ? "¡HAS GANADO A LA MÁQUINA!" : (scores.h < scores.ia ? "LA IA TE HA PULIDO..." : "¡EMPATE TÉCNICO!");
+                alert(winMsg);
+            }
+        }
+
+        initGame();
+    </script>
 </body>
+</html>

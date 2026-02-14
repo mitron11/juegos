@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neón Lander | Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+        }
+
+        body {
+            margin: 0;
+            background: var(--fondo);
+            color: var(--tarjeta);
+            font-family: 'Bungee', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        canvas {
+            border: 4px solid var(--tarjeta);
+            background: #000;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(233, 30, 99, 0.2);
+        }
+
+        .ui {
+            position: absolute;
+            top: 20px;
+            display: flex;
+            gap: 20px;
+            background: rgba(16, 44, 38, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--primario);
+        }
+
+        .controls-hint {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .back-link {
+            margin-top: 15px;
+            color: var(--tarjeta);
+            text-decoration: none;
+            font-size: 0.8rem;
+            border-bottom: 2px solid var(--primario);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ui">
+        <div>Combustible: <span id="fuel">100</span>%</div>
+        <div>Velocidad: <span id="speed">0</span></div>
+    </div>
+
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+    <div class="controls-hint">Usa ↑ para propulsor | ← → para girar</div>
+    
+    <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const fuelDisplay = document.getElementById('fuel');
+        const speedDisplay = document.getElementById('speed');
+
+        // Configuración de la nave
+        let ship = {
+            x: 100,
+            y: 50,
+            angle: -Math.PI / 2,
+            velX: 0,
+            velY: 0,
+            fuel: 100,
+            thrusting: false
+        };
+
+        const gravity = 0.05;
+        const thrust = 0.15;
+        const rotationSpeed = 0.08;
+        let particles = [];
+
+        // Plataforma
+        const pad = { x: 450, y: 370, w: 60 };
+
+        let keys = {};
+        window.onkeydown = (e) => keys[e.code] = true;
+        window.onkeyup = (e) => keys[e.code] = false;
+
+        function update() {
+            if (ship.fuel > 0 && keys['ArrowUp']) {
+                ship.velX += Math.cos(ship.angle) * thrust;
+                ship.velY += Math.sin(ship.angle) * thrust;
+                ship.fuel -= 0.5;
+                ship.thrusting = true;
+                createParticles();
+            } else {
+                ship.thrusting = false;
+            }
+
+            if (keys['ArrowLeft']) ship.angle -= rotationSpeed;
+            if (keys['ArrowRight']) ship.angle += rotationSpeed;
+
+            // Física básica
+            ship.velY += gravity;
+            ship.x += ship.velX;
+            ship.y += ship.velY;
+
+            // Límites del canvas
+            if (ship.x < 0) ship.x = canvas.width;
+            if (ship.x > canvas.width) ship.x = 0;
+
+            // Colisión con suelo/plataforma
+            if (ship.y + 15 >= canvas.height) {
+                checkLanding();
+            }
+
+            fuelDisplay.innerText = Math.max(0, Math.floor(ship.fuel));
+            speedDisplay.innerText = Math.abs(Math.round(ship.velY * 10));
+        }
+
+        function checkLanding() {
+            let speed = Math.abs(ship.velY);
+            let onPad = ship.x > pad.x && ship.x < pad.x + pad.w;
+
+            if (onPad && speed < 1.5 && Math.abs(ship.angle + Math.PI/2) < 0.3) {
+                alert("¡ATERRIZAJE PERFECTO! Eres un fiera.");
+            } else {
+                alert("💥 ¡BOOM! Te has hecho fosfatina.");
+            }
+            reset();
+        }
+
+        function reset() {
+            ship = { x: 100, y: 50, angle: -Math.PI / 2, velX: 0, velY: 0, fuel: 100, thrusting: false };
+        }
+
+        function createParticles() {
+            particles.push({
+                x: ship.x - Math.cos(ship.angle) * 10,
+                y: ship.y - Math.sin(ship.angle) * 10,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                life: 1
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar estrellas de fondo
+            ctx.fillStyle = "white";
+            for(let i=0; i<20; i++) ctx.fillRect(i*50, (i*i)%400, 2, 2);
+
+            // Dibujar partículas (fuego)
+            particles.forEach((p, i) => {
+                ctx.fillStyle = `rgba(233, 30, 99, ${p.life})`;
+                ctx.fillRect(p.x, p.y, 3, 3);
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+
+            // Dibujar plataforma
+            ctx.fillStyle = "#4caf50";
+            ctx.fillRect(pad.x, pad.y, pad.w, 10);
+
+            // Dibujar nave
+            ctx.save();
+            ctx.translate(ship.x, ship.y);
+            ctx.rotate(ship.angle);
+            ctx.strokeStyle = varColor('--tarjeta');
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(15, 0); ctx.lineTo(-10, 10); ctx.lineTo(-10, -10); ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function varColor(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name);
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>

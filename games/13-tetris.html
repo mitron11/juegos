@@ -3,172 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TETRI-SUITE | Deluxe</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Bungee&display=swap" rel="stylesheet">
+    <title>TETRI-SUITE | Fixed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
         :root {
             --fondo: #102C26;
             --tarjeta: #F7EFCE;
-            --primario: #e91e63; /* Rosa Fuerte */
-            --celda-vacia: #1a4a40; /* Verde Selva Oscuro */
-            --borde-juego: #2c5f53; /* Verde Selva Ligeramente más claro */
-            --color-texto: #F7EFCE;
+            --primario: #e91e63;
+            --vacio: #1a4a40;
+            --borde: #2c5f53;
         }
 
         body {
             margin: 0;
             background: var(--fondo);
-            color: var(--color-texto);
-            font-family: 'Press Start 2P', cursive;
+            color: var(--tarjeta);
+            font-family: 'Bungee', cursive;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            overflow: hidden; /* Evita scrolls accidentales */
-            font-size: 14px;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .game-container {
+        .game-layout {
             display: flex;
-            gap: 30px;
-            background: #081613;
+            gap: 20px;
             padding: 20px;
-            border: 5px solid var(--borde-juego);
-            box-shadow: 15px 15px 0px var(--primario);
-            position: relative;
-            z-index: 1;
+            background: #081613;
+            border: 4px solid var(--tarjeta);
+            box-shadow: 10px 10px 0px var(--primario);
         }
 
-        #game-board {
+        #board {
             display: grid;
-            grid-template-columns: repeat(10, 30px);
-            grid-template-rows: repeat(20, 30px);
-            width: 300px;
-            height: 600px;
-            background: var(--celda-vacia);
-            border: 2px solid #000;
-            overflow: hidden; /* Para las partículas */
-            position: relative;
+            grid-template-columns: repeat(10, 25px);
+            grid-template-rows: repeat(20, 25px);
+            gap: 1px;
+            background: var(--borde);
+            border: 2px solid var(--borde);
         }
 
-        .board-cell {
-            width: 30px;
-            height: 30px;
-            background-color: var(--celda-vacia);
-            border: 1px solid rgba(0,0,0,0.2);
+        .cell {
+            width: 25px;
+            height: 25px;
+            background: var(--vacio);
             box-sizing: border-box;
-            position: relative;
-        }
-
-        .tetromino {
-            background-color: transparent; /* Se definirá por JS */
-            border: 1px solid rgba(0,0,0,0.3);
-            box-sizing: border-box;
-            box-shadow: inset 0 0 5px rgba(255,255,255,0.3);
-            position: absolute; /* Para las piezas móviles */
-        }
-
-        /* Colores de las piezas */
-        .I { background-color: #00ffff; } /* Cian */
-        .J { background-color: #0000ff; } /* Azul */
-        .L { background-color: #ffa500; } /* Naranja */
-        .O { background-color: #ffff00; } /* Amarillo */
-        .S { background-color: #00ff00; } /* Verde */
-        .T { background-color: #800080; } /* Púrpura */
-        .Z { background-color: #ff0000; } /* Rojo */
-
-        /* Colores de la suite para las piezas que quedan fijas */
-        .fixed-I { background-color: #4caf50; } /* Verde Suite */
-        .fixed-J { background-color: #F7EFCE; } /* Crema Suite */
-        .fixed-L { background-color: #e91e63; } /* Rosa Suite */
-        .fixed-O { background-color: #F7EFCE; } /* Crema Suite */
-        .fixed-S { background-color: #4caf50; } /* Verde Suite */
-        .fixed-T { background-color: #e91e63; } /* Rosa Suite */
-        .fixed-Z { background-color: #e91e63; } /* Rosa Suite */
-
-        .ghost {
-            background-color: rgba(247, 239, 206, 0.2); /* Crema transparente */
-            border: 1px dashed var(--tarjeta);
         }
 
         .sidebar {
             width: 150px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            text-align: left;
-            padding: 10px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
+            gap: 15px;
         }
 
-        .info-box {
-            background: var(--borde-juego);
+        .stat-box {
+            background: var(--vacio);
             padding: 10px;
-            border-radius: 5px;
             border: 2px solid var(--tarjeta);
-            font-size: 0.9em;
-            text-shadow: 1px 1px 0px #000;
+            text-align: center;
         }
 
-        #next-piece {
-            width: 120px;
-            height: 120px;
+        #next-preview {
             display: grid;
-            grid-template-columns: repeat(4, 30px);
-            grid-template-rows: repeat(4, 30px);
-            background: rgba(0,0,0,0.1);
-            border: 1px solid var(--tarjeta);
-            margin-top: 5px;
+            grid-template-columns: repeat(4, 20px);
+            grid-template-rows: repeat(4, 20px);
+            gap: 1px;
+            margin-top: 10px;
+            justify-content: center;
         }
-        #next-piece .tetromino { position: static; }
 
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .p-cell { width: 20px; height: 20px; background: rgba(0,0,0,0.2); }
 
         button {
-            font-family: 'Bungee', cursive;
+            font-family: 'Bungee';
             background: var(--primario);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 10px;
             cursor: pointer;
-            box-shadow: 4px 4px 0px #880e4f;
-            transition: 0.1s;
+            box-shadow: 3px 3px 0px #000;
         }
-        button:hover { background: #ff4081; }
-        button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #880e4f; }
 
-        /* Game Over Screen */
-        #game-over-screen {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            color: white;
-            font-size: 2rem;
-            text-align: center;
-            transition: opacity 0.5s ease-in-out;
-            opacity: 0;
-            pointer-events: none;
+        button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #000; }
+
+        .back-link { margin-top: 20px; color: var(--tarjeta); text-decoration: none; font-size: 0.8rem; border-bottom: 2px solid var(--primario); }
+    </style>
+</head>
+<body>
+
+    <div class="game-layout">
+        <div id="board"></div>
+        
+        <div class="sidebar">
+            <div class="stat-box">
+                SCORE<br><span id="score">0</span>
+            </div>
+            <div class="stat-box">
+                NEXT
+                <div id="next-preview"></div>
+            </div>
+            <button onclick="resetGame()">REINICIAR</button>
+            <a href="../index.html" class="back-link">VOLVER</a>
+        </div>
+    </div>
+
+    <script>
+        const COLS = 10;
+        const ROWS = 20;
+        const boardEl = document.getElementById('board');
+        const nextEl = document.getElementById('next-preview');
+        
+        const COLORS = {
+            I: '#4caf50', J: '#e91e63', L: '#F7EFCE', 
+            O: '#4caf50', S: '#e91e63', T: '#F7EFCE', Z: '#e91e63'
+        };
+
+        const PIECES = {
+            I: [[1,1,1,1]],
+            J: [[1,0,0],[1,1,1]],
+            L: [[0,0,1],[1,1,1]],
+            O: [[1,1],[1,1]],
+            S: [[0,1,1],[1,1,0]],
+            T: [[0,1,0],[1,1,1]],
+            Z: [[1,1,0],[0,1,1]]
+        };
+
+        let grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+        let cells = [];
+        let previewCells = [];
+        let score = 0;
+        let currentPiece, nextPiece;
+
+        // Crear elementos del tablero una sola vez
+        function initBoard() {
+            boardEl.innerHTML = '';
+            for (let i = 0; i < ROWS * COLS; i++) {
+                const div = document.createElement('div');
+                div.classList.add('cell');
+                boardEl.appendChild(div);
+                cells.push(div);
+            }
+            nextEl.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const div = document.createElement('div');
+                div.classList.add('p-cell');
+                nextEl.appendChild(div);
+                previewCells.push(div);
+            }
         }
-        #game-over-screen.active {
-            opacity: 1;
-            pointer-events: all;
+
+        function createPiece(type) {
+            const shape = PIECES[type];
+            return {
+                shape,
+                type,
+                x: Math.floor(COLS/2) - Math.floor(shape[0].length/2),
+                y: 0
+            };
         }
-        #game-over-screen h2 { color: var(--primario); text-shadow: 5px 5px 0px #000; margin-bottom: 20px;}
-        #game-over-screen button { font-size: 1.2rem; }
 
-        .back-link { margin-top: 30px; color: var(--color-texto); text-decoration: none; font-size: 0.9em; border-bottom: 2px solid var(--primario); }
+        function draw() {
+            // Limpiar tablero visual
+            cells.forEach(c => c.style.background = '');
+            
+            // Dibujar piezas fijas
+            grid.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) cells[y * COLS + x].style.background = COLORS[value];
+                });
+            });
 
-        /* Efecto
+            // Dibujar pieza actual
+            if (currentPiece) {
+                currentPiece.shape.forEach((row, dy) => {
+                    row.forEach((value, dx) => {
+                        if (value) {
+                            const x = currentPiece.x + dx;
+                            const y = currentPiece.y + dy;
+                            if (y >= 0) cells[y * COLS + x].style.background = COLORS[currentPiece.type];
+                        }
+                    });
+                });
+            }
+        }
+
+        function drawPreview() {
+            previewCells.forEach(c => c.style.background = '');
+            nextPiece.shape.forEach((row, dy) => {
+                row.forEach((value, dx) => {
+                    if (value) previewCells[dy * 4 + dx].style.background = COLORS[nextPiece.type];
+                });
+            });
+        }
+
+        function collide(p) {
+            return p.shape.some((row, dy) => {
+                return row.some((value, dx) => {
+                    let x = p.x + dx;
+                    let y = p.y + dy;
+                    return value && (x < 0 || x >= COLS || y >= ROWS || (y >= 0 && grid[y][x]));
+                });
+            });
+        }
+
+        function merge() {
+            currentPiece.shape.forEach((row, dy) => {
+                row.forEach((value, dx) => {
+                    if (value) grid[currentPiece.y + dy][currentPiece.x + dx] = currentPiece.type;
+                });
+            });
+        }
+
+        function clearLines() {
+            let lines = 0;
+            grid = grid.filter(row => {
+                if (row.every(v => v !== 0)) {
+                    lines++;
+                    return false;
+                }
+                return true;
+            });
+            while (grid.length < ROWS) grid.unshift(Array(COLS).fill(0));
+            if (lines) {
+                score += lines * 100;
+                document.getElementById('score').innerText = score;
+            }
+        }
+
+        function drop() {
+            currentPiece.y++;
+            if (collide(currentPiece)) {
+                currentPiece.y--;
+                merge();
+                clearLines();
+                currentPiece = nextPiece;
+                nextPiece = createPiece(Object.keys(PIECES)[Math.floor(Math.random()*7)]);
+                drawPreview();
+                if (collide(currentPiece)) {
+                    alert("GAME OVER! Score: " + score);
+                    resetGame();
+                }
+            }
+            draw();
+        }
+
+        function resetGame() {
+            grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+            score = 0;
+            document.getElementById('score').innerText = score;
+            const keys = Object.keys(PIECES);
+            currentPiece = createPiece(keys[Math.floor(Math.random()*7)]);
+            nextPiece = createPiece(keys[Math.floor(Math.random()*7)]);
+            drawPreview();
+        }
+
+        // Controles
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') {
+                currentPiece.x--;
+                if (collide(currentPiece)) currentPiece.x++;
+            }
+            if (e.key === 'ArrowRight') {
+                currentPiece.x++;
+                if (collide(currentPiece)) currentPiece.x--;
+            }
+            if (e.key === 'ArrowDown') drop();
+            if (e.key === 'ArrowUp') {
+                const rotated = currentPiece.shape[0].map((_, i) => currentPiece.shape.map(row => row[i]).reverse());
+                const oldShape = currentPiece.shape;
+                currentPiece.shape = rotated;
+                if (collide(currentPiece)) currentPiece.shape = oldShape;
+            }
+            draw();
+        });
+
+        initBoard();
+        resetGame();
+        setInterval(drop, 600);
+    </script>
+</body>
+</html>

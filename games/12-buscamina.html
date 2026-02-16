@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mina-Suite | Buscaminas Deluxe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --fondo: #102C26;
+            --tarjeta: #F7EFCE;
+            --primario: #e91e63;
+            --celda-oculta: #1a4a40;
+            --celda-vacia: #F7EFCE;
+        }
+
+        body {
+            margin: 0;
+            background: var(--fondo);
+            color: var(--tarjeta);
+            font-family: 'Bungee', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            font-family: 'Bungee';
+            background: var(--primario);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #000; }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        #grid {
+            display: grid;
+            gap: 4px;
+            background: #081613;
+            padding: 10px;
+            border: 4px solid var(--tarjeta);
+            box-shadow: 10px 10px 0px var(--primario);
+            user-select: none;
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+            background: var(--celda-oculta);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .cell:hover { background: #246356; }
+
+        .cell.revealed {
+            background: var(--celda-vacia);
+            color: #102C26;
+            cursor: default;
+        }
+
+        .cell.mine { background: var(--primario) !important; color: white; }
+        .cell.flag { background: #4caf50 !important; }
+
+        /* Colores para los números */
+        .n1 { color: #1e88e5; } .n2 { color: #43a047; } .n3 { color: #e53935; }
+        .n4 { color: #3949ab; } .n5 { color: #8e24aa; }
+
+        .back-link { margin-top: 30px; color: var(--tarjeta); text-decoration: none; font-size: 0.9rem; border-bottom: 2px solid var(--primario); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 style="color: var(--primario); margin: 0;">MINA-SUITE</h1>
+        <p style="font-size: 0.7rem; opacity: 0.8;">CLIC: REVELAR | CLIC DERECHO: BANDERA</p>
+    </div>
+
+    <div class="controls">
+        <button onclick="startGame(9, 9, 10)">FÁCIL</button>
+        <button onclick="startGame(12, 12, 25)">MEDIO</button>
+        <button onclick="startGame(15, 15, 45)">DIFÍCIL</button>
+    </div>
+
+    <div class="stats">
+        <div>⏳ <span id="timer">0</span>s</div>
+        <div>💣 <span id="mines-count">0</span></div>
+    </div>
+
+    <div id="grid"></div>
+
+    <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
+
+    <script>
+        let grid = [];
+        let rows, cols, mines;
+        let gameOver = false;
+        let timerInterval;
+        let time = 0;
+
+        const gridEl = document.getElementById('grid');
+        const timerEl = document.getElementById('timer');
+        const minesEl = document.getElementById('mines-count');
+
+        function startGame(r, c, m) {
+            rows = r; cols = c; mines = m;
+            gameOver = false;
+            time = 0;
+            clearInterval(timerInterval);
+            timerEl.innerText = "0";
+            minesEl.innerText = mines;
+            
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 35px)`;
+            createGrid();
+            startTimer();
+        }
+
+        function createGrid() {
+            grid = [];
+            gridEl.innerHTML = '';
+            
+            // Llenar matriz
+            for (let r = 0; r < rows; r++) {
+                grid[r] = [];
+                for (let c = 0; c < cols; c++) {
+                    const cell = {
+                        r, c, mine: false, revealed: false, flagged: false, count: 0,
+                        el: document.createElement('div')
+                    };
+                    cell.el.classList.add('cell');
+                    cell.el.addEventListener('click', () => reveal(r, c));
+                    cell.el.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        toggleFlag(r, c);
+                    });
+                    gridEl.appendChild(cell.el);
+                    grid[r][c] = cell;
+                }
+            }
+
+            // Poner minas
+            let placed = 0;
+            while (placed < mines) {
+                let r = Math.floor(Math.random() * rows);
+                let c = Math.floor(Math.random() * cols);
+                if (!grid[r][c].mine) {
+                    grid[r][c].mine = true;
+                    placed++;
+                }
+            }
+
+            // Calcular números
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (!grid[r][c].mine) {
+                        grid[r][c].count = countMines(r, c);
+                    }
+                }
+            }
+        }
+
+        function countMines(r, c) {
+            let count = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (grid[r+i] && grid[r+i][c+j] && grid[r+i][c+j].mine) count++;
+                }
+            }
+            return count;
+        }
+
+        function toggleFlag(r, c) {
+            if (gameOver || grid[r][c].revealed) return;
+            grid[r][c].flagged = !grid[r][c].flagged;
+            grid[r][c].el.classList.toggle('flag');
+            grid[r][c].el.innerText = grid[r][c].flagged ? '🚩' : '';
+        }
+
+        function reveal(r, c) {
+            if (gameOver || grid[r][c].revealed || grid[r][c].flagged) return;
+
+            const cell = grid[r][c];
+            cell.revealed = true;
+            cell.el.classList.add('revealed');
+
+            if (cell.mine) {
+                explode();
+                return;
+            }
+
+            if (cell.count > 0) {
+                cell.el.innerText = cell.count;
+                cell.el.classList.add('n' + cell.count);
+            } else {
+                // Revelar vacías adyacentes
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (grid[r+i] && grid[r+i][c+j]) reveal(r+i, c+j);
+                    }
+                }
+            }
+            checkWin();
+        }
+
+        function explode() {
+            gameOver = true;
+            clearInterval(timerInterval);
+            grid.forEach(row => row.forEach(cell => {
+                if (cell.mine) {
+                    cell.el.classList.add('mine');
+                    cell.el.innerText = '💣';
+                }
+            }));
+            alert("💥 ¡BOOM! Has pisado una mina.");
+        }
+
+        function checkWin() {
+            let win = true;
+            grid.forEach(row => row.forEach(cell => {
+                if (!cell.mine && !cell.revealed) win = false;
+            }));
+            if (win) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                alert("🏆 ¡ERES UN MÁQUINA! Has despejado el sector.");
+            }
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                time++;
+                timerEl.innerText = time;
+            }, 1000);
+        }
+
+        // Iniciar modo fácil por defecto
+        startGame(9, 9, 10);
+    </script>
+</body>
+</html>

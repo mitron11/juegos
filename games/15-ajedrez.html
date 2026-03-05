@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Suite | Ajedrez Deluxe</title>
+    <title>Chess Suite IA | Estrategia Pura</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
     <style>
         :root {
             --fondo: #102C26;
-            --claro: #F7EFCE; /* Crema Suite */
-            --oscuro: #1a4a40; /* Verde Suite */
-            --acento: #e91e63; /* Rosa Suite */
-            --resaltado: rgba(233, 30, 99, 0.4);
+            --claro: #F7EFCE;
+            --oscuro: #1a4a40;
+            --acento: #e91e63;
         }
 
         body {
@@ -26,12 +25,12 @@
             min-height: 100vh;
         }
 
-        h1 { color: var(--acento); margin-bottom: 10px; text-shadow: 3px 3px 0px #000; }
-
         .game-wrap {
             display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 20px;
-            padding: 15px;
+            padding: 20px;
             background: #081613;
             border: 4px solid var(--claro);
             box-shadow: 10px 10px 0px var(--acento);
@@ -52,30 +51,29 @@
             justify-content: center;
             font-size: 35px;
             cursor: pointer;
-            user-select: none;
         }
 
-        .square.white { background-color: var(--claro); color: var(--fondo); }
-        .square.black { background-color: var(--oscuro); color: var(--claro); }
-        .square.selected { background-color: #ffeb3b !important; }
-        .square.hint { background-color: var(--resaltado) !important; }
-
-        .sidebar { width: 150px; text-align: center; }
-        .turn-box {
-            background: var(--oscuro);
-            padding: 10px;
-            border: 2px solid var(--claro);
-            margin-bottom: 15px;
+        .white { background-color: var(--claro); color: var(--fondo); }
+        .black { background-color: var(--oscuro); color: var(--claro); }
+        .selected { background-color: #ffeb3b !important; }
+        .valid-move { position: relative; }
+        .valid-move::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: rgba(233, 30, 99, 0.5);
+            border-radius: 50%;
+            position: absolute;
         }
-        
+
+        .status { font-size: 1.2rem; color: var(--acento); }
         button {
             font-family: 'Bungee';
             background: var(--acento);
             color: white;
             border: none;
-            padding: 10px;
+            padding: 10px 20px;
             cursor: pointer;
-            width: 100%;
             box-shadow: 3px 3px 0px #000;
         }
 
@@ -84,103 +82,104 @@
 </head>
 <body>
 
-    <h1>CHESS SUITE</h1>
-
+    <h1>CHESS SUITE IA</h1>
+    
     <div class="game-wrap">
+        <div class="status" id="status">TU TURNO (BLANCAS)</div>
         <div id="chess-board"></div>
-        <div class="sidebar">
-            <div class="turn-box">TURNO:<br><span id="turn">BLANCAS</span></div>
-            <button onclick="initGame()">REINICIAR</button>
-        </div>
+        <button onclick="resetGame()">REINICIAR PARTIDA</button>
     </div>
 
     <a href="../index.html" class="back-link">VOLVER AL MENÚ</a>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
         const boardEl = document.getElementById('chess-board');
-        const turnEl = document.getElementById('turn');
-        
-        // Representación de las piezas (Unicode)
-        const PIECES = {
-            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
-        };
-
-        let board = [];
+        const statusEl = document.getElementById('status');
+        let game = new Chess();
         let selectedSquare = null;
-        let turn = 'white';
 
-        function initGame() {
-            board = [
-                ['r','n','b','q','k','b','n','r'],
-                ['p','p','p','p','p','p','p','p'],
-                ['','','','','','','',''],
-                ['','','','','','','',''],
-                ['','','','','','','',''],
-                ['','','','','','','',''],
-                ['P','P','P','P','P','P','P','P'],
-                ['R','N','B','Q','K','B','N','R']
-            ];
-            turn = 'white';
-            selectedSquare = null;
-            render();
-        }
+        const PIECES = {
+            'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
+            'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
+        };
 
         function render() {
             boardEl.innerHTML = '';
-            turnEl.innerText = turn === 'white' ? 'BLANCAS' : 'NEGRAS';
-            turnEl.style.color = turn === 'white' ? 'var(--claro)' : 'var(--acento)';
+            const board = game.board();
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const square = document.createElement('div');
+                    const squareName = String.fromCharCode(97 + c) + (8 - r);
+                    const piece = board[r][c];
+
                     square.classList.add('square');
                     square.classList.add((r + c) % 2 === 0 ? 'white' : 'black');
                     
-                    const piece = board[r][c];
                     if (piece) {
-                        square.innerText = PIECES[piece];
-                        // Las negras en rosa para que resalten
-                        if (piece === piece.toLowerCase()) square.style.color = 'var(--acento)';
+                        square.innerText = PIECES[piece.type === 'p' ? (piece.color === 'w' ? 'P' : 'p') : (piece.color === 'w' ? piece.type.toUpperCase() : piece.type)];
+                        if (piece.color === 'b') square.style.color = 'var(--acento)';
                     }
 
-                    if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
-                        square.classList.add('selected');
+                    if (selectedSquare === squareName) square.classList.add('selected');
+
+                    // Marcar movimientos legales si hay una pieza seleccionada
+                    if (selectedSquare) {
+                        const moves = game.moves({ square: selectedSquare, verbose: true });
+                        if (moves.some(m => m.to === squareName)) square.classList.add('valid-move');
                     }
 
-                    square.onclick = () => handleSquareClick(r, c);
+                    square.onclick = () => onSquareClick(squareName);
                     boardEl.appendChild(square);
                 }
             }
+            updateStatus();
         }
 
-        function handleSquareClick(r, c) {
-            const piece = board[r][c];
+        function onSquareClick(square) {
+            if (game.game_over() || game.turn() === 'b') return;
 
-            if (selectedSquare) {
-                // Si hacemos clic en el mismo sitio, deseleccionamos
-                if (selectedSquare.r === r && selectedSquare.c === c) {
-                    selectedSquare = null;
-                } else {
-                    // Mover pieza (Lógica simplificada de movimiento libre para esta versión)
-                    board[r][c] = board[selectedSquare.r][selectedSquare.c];
-                    board[selectedSquare.r][selectedSquare.c] = '';
-                    turn = turn === 'white' ? 'black' : 'white';
-                    selectedSquare = null;
-                }
+            if (selectedSquare === square) {
+                selectedSquare = null;
             } else {
-                // Seleccionar pieza (solo si es del color del turno)
-                if (piece) {
-                    const isWhite = piece === piece.toUpperCase();
-                    if ((isWhite && turn === 'white') || (!isWhite && turn === 'black')) {
-                        selectedSquare = { r, c };
-                    }
+                const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+                if (move) {
+                    selectedSquare = null;
+                    render();
+                    setTimeout(makeBestMove, 500); // IA mueve después
+                } else {
+                    const piece = game.get(square);
+                    if (piece && piece.color === 'w') selectedSquare = square;
                 }
             }
             render();
         }
 
-        initGame();
+        function makeBestMove() {
+            if (game.game_over()) return;
+            const moves = game.moves();
+            const move = moves[Math.floor(Math.random() * moves.length)]; // IA Simple (Aleatoria por ahora)
+            game.move(move);
+            render();
+        }
+
+        function updateStatus() {
+            let status = 'TU TURNO';
+            if (game.in_checkmate()) status = '¡JAQUE MATE! FIN.';
+            else if (game.in_draw()) status = 'TABLAS.';
+            else if (game.in_check()) status = '¡JAQUE!';
+            else if (game.turn() === 'b') status = 'IA PENSANDO...';
+            statusEl.innerText = status;
+        }
+
+        function resetGame() {
+            game = new Chess();
+            selectedSquare = null;
+            render();
+        }
+
+        render();
     </script>
 </body>
 </html>

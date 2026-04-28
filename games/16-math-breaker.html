@@ -1,90 +1,166 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Científica | Resolver Ecuaciones</title>
+    <title>CalcSolver | Free Online Scientific Calculator & Study Tools</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            background-color: #000;
+        :root {
+            --nav-bg: #1a1a1a;
+            --blue: #3498db;
+            --bg: #f8f9fa;
         }
 
-        /* La web real que verán los profesores */
-        #original-web {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            z-index: 2; /* Siempre por encima */
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #333; }
+
+        /* NAVBAR */
+        nav { background: var(--nav-bg); color: white; padding: 15px 10%; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: bold; font-size: 22px; cursor: default; }
+        .nav-links { display: flex; gap: 20px; font-size: 14px; color: #aaa; }
+
+        /* HERO */
+        .hero { background: white; padding: 50px 20px; text-align: center; border-bottom: 1px solid #ddd; }
+        .hero h1 { font-size: 42px; margin: 0; color: #222; }
+        .hero p { color: #666; font-size: 18px; margin: 15px 0; }
+
+        /* GRID DEL "BINGO" */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 40px 10%;
+            max-width: 1200px;
+            margin: auto;
         }
 
-        /* El contenedor del juego oculto */
-        #secret-game {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1; /* Debajo de la web original */
-            color: white;
-            font-family: Arial, sans-serif;
+        .tool-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+            transition: 0.2s;
+            cursor: pointer;
+            position: relative;
         }
 
-        /* Estilo para el aviso de "Modo Incógnito" */
-        #alert-box {
+        .tool-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+        .cat { color: var(--blue); font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .tool-card h3 { margin: 10px 0; font-size: 20px; }
+        .tool-card p { font-size: 14px; color: #777; line-height: 1.4; }
+
+        /* EL REPRODUCTOR DE JUEGOS (IFRAME) */
+        #game-view {
+            display: none;
             position: fixed;
-            bottom: 10px;
-            right: 10px;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 1000;
+        }
+
+        #game-frame { width: 100%; height: 100%; border: none; }
+
+        /* BOTÓN DE PÁNICO */
+        .panic-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             background: rgba(0,0,0,0.5);
-            color: rgba(255,255,255,0.2);
-            padding: 5px;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
             font-size: 10px;
-            z-index: 10;
-            pointer-events: none;
+            z-index: 1001;
+            display: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <iframe src="https://calcsolver.net/" id="original-web"></iframe>
+    <nav>
+        <div class="logo">CalcSolver</div>
+        <div class="nav-links">
+            <span>Algebra</span><span>Geometry</span><span>Statistics</span><span>Finance</span>
+        </div>
+    </nav>
 
-    <div id="secret-game">
-        <h1 style="color: #e91e63;">MODO JUEGO ACTIVADO</h1>
-        <p>Pulsa <b>Alt + Q</b> para volver a la calculadora rápidamente.</p>
-        
-        <iframe src="13-tetris.html" style="width: 500px; height: 700px; border: 4px solid #e91e63;"></iframe>
+    <div class="hero">
+        <h1>All Calculators</h1>
+        <p>Explore our library of mathematical tools and scientific solvers.</p>
     </div>
 
-    <div id="alert-box">V3.1 Secure</div>
+    <div class="tools-grid">
+        <div class="tool-card" onclick="launch('1-tres-raya.html')">
+            <span class="cat">Algebra</span>
+            <h3>Quadratic Solver</h3>
+            <p>Solve quadratic equations using the standard formula.</p>
+        </div>
+
+        <div class="tool-card" onclick="launch('2-snake.html')">
+            <span class="cat">Logic</span>
+            <h3>Sequence Generator</h3>
+            <p>Generate arithmetic and geometric progressions.</p>
+        </div>
+
+        <div class="tool-card" onclick="launch('5-memoria.html')">
+            <span class="cat">Statistics</span>
+            <h3>Probability Matrix</h3>
+            <p>Analyze data sets and calculate standard deviation.</p>
+        </div>
+
+        <div class="tool-card" onclick="launch('12-buscamina.html')">
+            <span class="cat">Geometry</span>
+            <h3>Coordinate Mapper</h3>
+            <p>Find distances between points in a 2D plane.</p>
+        </div>
+
+        <div class="tool-card" onclick="launch('13-tetris.html')">
+            <span class="cat">Finance</span>
+            <h3>Amortization Table</h3>
+            <p>Calculate monthly payments for loans and credits.</p>
+        </div>
+
+        <div class="tool-card" onclick="launch('14-2048.html')">
+            <span class="cat">Calculus</span>
+            <h3>Integral Calculator</h3>
+            <p>Find antiderivatives and definite integrals step-by-step.</p>
+        </div>
+
+        <div class="tool-card" onclick="launch('15-ajedrez.html')">
+            <span class="cat">Strategy</span>
+            <h3>Decision Tree Model</h3>
+            <p>Visualize complex logical paths and game theory.</p>
+        </div>
+    </div>
+
+    <div id="game-view">
+        <iframe id="game-frame" src=""></iframe>
+        <div class="panic-btn" id="panic" onclick="closeGame()">PÁNICO (ESC)</div>
+    </div>
 
     <script>
-        const webOriginal = document.getElementById('original-web');
-        const juegoSecreto = document.getElementById('secret-game');
+        const view = document.getElementById('game-view');
+        const frame = document.getElementById('game-frame');
+        const panic = document.getElementById('panic');
 
-        // LÓGICA DE LA PUERTA TRASERA
-        document.addEventListener('keydown', function(e) {
-            // ALT + J para JUGAR (Oculta la web y muestra el juego)
-            if (e.altKey && e.key.toLowerCase() === 'j') {
-                webOriginal.style.display = 'none';
-                console.log("Capa de camuflaje desactivada");
-            }
+        function launch(url) {
+            frame.src = url;
+            view.style.display = 'block';
+            panic.style.display = 'block';
+            document.title = "Math Tool Running...";
+        }
 
-            // ALT + Q para QUITAR (Oculta el juego y muestra la web corriendo)
-            if (e.altKey && e.key.toLowerCase() === 'q') {
-                webOriginal.style.display = 'block';
-                console.log("Capa de camuflaje activada");
-            }
+        function closeGame() {
+            view.style.display = 'none';
+            panic.style.display = 'none';
+            frame.src = "";
+            document.title = "CalcSolver | Scientific Tools";
+        }
+
+        // Si pulsas ESCAPE, se cierra el juego y vuelve el bingo
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeGame();
         });
     </script>
 </body>

@@ -3,189 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Matrices | Solucionador Online</title>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <title>Calculadora Científica | Resolver Ecuaciones</title>
     <style>
-        :root {
-            --bg-calc: #e0e0e0;
-            --pantalla: #9ca38f;
-            --btn: #f5f5f5;
-            --texto: #333;
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #000;
         }
 
-        body {
-            background: #222;
-            font-family: 'Courier Prime', monospace;
+        /* La web real que verán los profesores */
+        #original-web {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 2; /* Siempre por encima */
+        }
+
+        /* El contenedor del juego oculto */
+        #secret-game {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
+            z-index: 1; /* Debajo de la web original */
+            color: white;
+            font-family: Arial, sans-serif;
         }
 
-        /* Interfaz de "Calculadora" */
-        #calc-ui {
-            background: var(--bg-calc);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 0 #999;
-            width: 320px;
-            text-align: center;
+        /* Estilo para el aviso de "Modo Incógnito" */
+        #alert-box {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            color: rgba(255,255,255,0.2);
+            padding: 5px;
+            font-size: 10px;
+            z-index: 10;
+            pointer-events: none;
         }
-
-        .screen {
-            background: var(--pantalla);
-            height: 60px;
-            border: 3px inset #777;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 10px;
-            font-size: 1.5rem;
-            color: #2b3025;
-        }
-
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        .btn {
-            background: var(--btn);
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 0 #bbb;
-        }
-
-        /* El Juego Oculto (Canvas) */
-        #game-canvas {
-            display: none; /* Oculto inicialmente */
-            background: #000;
-            border: 4px solid #444;
-        }
-
-        .instructions {
-            margin-top: 15px;
-            font-size: 0.7rem;
-            color: #666;
-        }
-
-        #back-btn { display: none; margin-top: 20px; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="calc-ui">
-        <div style="font-size: 0.6rem; text-align: left; margin-bottom: 5px;">CALCSOLVER V3.1 - MATRIX ENGINE</div>
-        <div class="screen" id="display">0.00000000</div>
+    <iframe src="https://calcsolver.net/" id="original-web"></iframe>
+
+    <div id="secret-game">
+        <h1 style="color: #e91e63;">MODO JUEGO ACTIVADO</h1>
+        <p>Pulsa <b>Alt + Q</b> para volver a la calculadora rápidamente.</p>
         
-        <div class="buttons">
-            <div class="btn">sin</div><div class="btn">cos</div><div class="btn">tan</div><div class="btn" style="background:#ff9800">AC</div>
-            <div class="btn">7</div><div class="btn">8</div><div class="btn">9</div><div class="btn">DEL</div>
-            <div class="btn">4</div><div class="btn">5</div><div class="btn">6</div><div class="btn">×</div>
-            <div class="btn">1</div><div class="btn">2</div><div class="btn">3</div><div class="btn">÷</div>
-            <div class="btn">0</div><div class="btn">.</div><div class="btn">EXP</div><div class="btn" id="start-btn" style="background:#4caf50; color:white">EXE</div>
-        </div>
-        
-        <div class="instructions">Pulsa EXE (o Enter) para resolver la matriz.</div>
+        <iframe src="13-tetris.html" style="width: 500px; height: 700px; border: 4px solid #e91e63;"></iframe>
     </div>
 
-    <canvas id="game-canvas" width="400" height="500"></canvas>
-    <div id="back-btn" onclick="location.reload()">[ VOLVER A CALCULADORA ]</div>
+    <div id="alert-box">V3.1 Secure</div>
 
     <script>
-        const calcUi = document.getElementById('calc-ui');
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        const startBtn = document.getElementById('start-btn');
+        const webOriginal = document.getElementById('original-web');
+        const juegoSecreto = document.getElementById('secret-game');
 
-        let gameActive = false;
-        let score = 0;
-        let player = { x: 200, y: 450, w: 30, h: 20 };
-        let bullets = [];
-        let enemies = [];
-
-        function initGame() {
-            calcUi.style.display = 'none';
-            canvas.style.display = 'block';
-            document.getElementById('back-btn').style.display = 'block';
-            gameActive = true;
-            spawnEnemies();
-            gameLoop();
-        }
-
-        function spawnEnemies() {
-            for(let i=0; i<5; i++) {
-                for(let j=0; j<3; j++) {
-                    enemies.push({
-                        x: 50 + i*70,
-                        y: 30 + j*50,
-                        w: 40,
-                        h: 20,
-                        val: Math.floor(Math.random()*9)
-                    });
-                }
+        // LÓGICA DE LA PUERTA TRASERA
+        document.addEventListener('keydown', function(e) {
+            // ALT + J para JUGAR (Oculta la web y muestra el juego)
+            if (e.altKey && e.key.toLowerCase() === 'j') {
+                webOriginal.style.display = 'none';
+                console.log("Capa de camuflaje desactivada");
             }
-        }
 
-        function gameLoop() {
-            if(!gameActive) return;
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Jugador
-            ctx.fillStyle = '#4caf50';
-            ctx.fillRect(player.x - player.w/2, player.y, player.w, player.h);
-
-            // Balas
-            ctx.fillStyle = '#e91e63';
-            bullets.forEach((b, i) => {
-                b.y -= 5;
-                ctx.fillRect(b.x, b.y, 4, 10);
-                if(b.y < 0) bullets.splice(i, 1);
-            });
-
-            // Enemigos (Números)
-            ctx.fillStyle = 'white';
-            ctx.font = '20px Courier Prime';
-            enemies.forEach((e, ei) => {
-                ctx.fillText(e.val, e.x, e.y);
-                
-                // Colisión
-                bullets.forEach((b, bi) => {
-                    if(b.x > e.x && b.x < e.x + 20 && b.y > e.y - 20 && b.y < e.y) {
-                        enemies.splice(ei, 1);
-                        bullets.splice(bi, 1);
-                        score += 10;
-                    }
-                });
-            });
-
-            if(enemies.length === 0) spawnEnemies();
-
-            ctx.fillStyle = 'white';
-            ctx.font = '12px Courier Prime';
-            ctx.fillText("SCORE: " + score, 10, 20);
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Controles
-        window.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') initGame();
-            if(!gameActive) return;
-            if(e.key === 'ArrowLeft' && player.x > 20) player.x -= 15;
-            if(e.key === 'ArrowRight' && player.x < 380) player.x += 15;
-            if(e.key === ' ') bullets.push({x: player.x, y: player.y});
+            // ALT + Q para QUITAR (Oculta el juego y muestra la web corriendo)
+            if (e.altKey && e.key.toLowerCase() === 'q') {
+                webOriginal.style.display = 'block';
+                console.log("Capa de camuflaje activada");
+            }
         });
-
-        startBtn.onclick = initGame;
     </script>
 </body>
 </html>

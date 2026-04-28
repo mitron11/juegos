@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Matrices | Solucionador Online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-calc: #e0e0e0;
+            --pantalla: #9ca38f;
+            --btn: #f5f5f5;
+            --texto: #333;
+        }
+
+        body {
+            background: #222;
+            font-family: 'Courier Prime', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Interfaz de "Calculadora" */
+        #calc-ui {
+            background: var(--bg-calc);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 0 #999;
+            width: 320px;
+            text-align: center;
+        }
+
+        .screen {
+            background: var(--pantalla);
+            height: 60px;
+            border: 3px inset #777;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 10px;
+            font-size: 1.5rem;
+            color: #2b3025;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .btn {
+            background: var(--btn);
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 0 #bbb;
+        }
+
+        /* El Juego Oculto (Canvas) */
+        #game-canvas {
+            display: none; /* Oculto inicialmente */
+            background: #000;
+            border: 4px solid #444;
+        }
+
+        .instructions {
+            margin-top: 15px;
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        #back-btn { display: none; margin-top: 20px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="calc-ui">
+        <div style="font-size: 0.6rem; text-align: left; margin-bottom: 5px;">CALCSOLVER V3.1 - MATRIX ENGINE</div>
+        <div class="screen" id="display">0.00000000</div>
+        
+        <div class="buttons">
+            <div class="btn">sin</div><div class="btn">cos</div><div class="btn">tan</div><div class="btn" style="background:#ff9800">AC</div>
+            <div class="btn">7</div><div class="btn">8</div><div class="btn">9</div><div class="btn">DEL</div>
+            <div class="btn">4</div><div class="btn">5</div><div class="btn">6</div><div class="btn">×</div>
+            <div class="btn">1</div><div class="btn">2</div><div class="btn">3</div><div class="btn">÷</div>
+            <div class="btn">0</div><div class="btn">.</div><div class="btn">EXP</div><div class="btn" id="start-btn" style="background:#4caf50; color:white">EXE</div>
+        </div>
+        
+        <div class="instructions">Pulsa EXE (o Enter) para resolver la matriz.</div>
+    </div>
+
+    <canvas id="game-canvas" width="400" height="500"></canvas>
+    <div id="back-btn" onclick="location.reload()">[ VOLVER A CALCULADORA ]</div>
+
+    <script>
+        const calcUi = document.getElementById('calc-ui');
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('start-btn');
+
+        let gameActive = false;
+        let score = 0;
+        let player = { x: 200, y: 450, w: 30, h: 20 };
+        let bullets = [];
+        let enemies = [];
+
+        function initGame() {
+            calcUi.style.display = 'none';
+            canvas.style.display = 'block';
+            document.getElementById('back-btn').style.display = 'block';
+            gameActive = true;
+            spawnEnemies();
+            gameLoop();
+        }
+
+        function spawnEnemies() {
+            for(let i=0; i<5; i++) {
+                for(let j=0; j<3; j++) {
+                    enemies.push({
+                        x: 50 + i*70,
+                        y: 30 + j*50,
+                        w: 40,
+                        h: 20,
+                        val: Math.floor(Math.random()*9)
+                    });
+                }
+            }
+        }
+
+        function gameLoop() {
+            if(!gameActive) return;
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Jugador
+            ctx.fillStyle = '#4caf50';
+            ctx.fillRect(player.x - player.w/2, player.y, player.w, player.h);
+
+            // Balas
+            ctx.fillStyle = '#e91e63';
+            bullets.forEach((b, i) => {
+                b.y -= 5;
+                ctx.fillRect(b.x, b.y, 4, 10);
+                if(b.y < 0) bullets.splice(i, 1);
+            });
+
+            // Enemigos (Números)
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Courier Prime';
+            enemies.forEach((e, ei) => {
+                ctx.fillText(e.val, e.x, e.y);
+                
+                // Colisión
+                bullets.forEach((b, bi) => {
+                    if(b.x > e.x && b.x < e.x + 20 && b.y > e.y - 20 && b.y < e.y) {
+                        enemies.splice(ei, 1);
+                        bullets.splice(bi, 1);
+                        score += 10;
+                    }
+                });
+            });
+
+            if(enemies.length === 0) spawnEnemies();
+
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Courier Prime';
+            ctx.fillText("SCORE: " + score, 10, 20);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Controles
+        window.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') initGame();
+            if(!gameActive) return;
+            if(e.key === 'ArrowLeft' && player.x > 20) player.x -= 15;
+            if(e.key === 'ArrowRight' && player.x < 380) player.x += 15;
+            if(e.key === ' ') bullets.push({x: player.x, y: player.y});
+        });
+
+        startBtn.onclick = initGame;
+    </script>
+</body>
+</html>
